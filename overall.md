@@ -1713,10 +1713,10 @@ The agent should commit small coherent changes with tests and README updates, th
 
 ### Phase 0 — Repo bootstrap
 
-- [ ] Create folder structure and root Gradle multi-module project.
-- [ ] Add version catalog, JVM 21 toolchain, Android Gradle configuration, two Compose skeleton apps, Ktor skeleton, Vite React TS app.
-- [ ] Add formatting/lint config, `.gitignore`, `.env.example`, CI skeleton, `README.md` and this `overall.md`.
-- [ ] Validate `./gradlew help`, web `pnpm build`, and Android `assembleDebug`.
+- [x] Create folder structure and root Gradle multi-module project.
+- [x] Add version catalog, JVM 21 toolchain, Android Gradle configuration, two Compose skeleton apps, Ktor skeleton, Vite React TS app.
+- [x] Add formatting/lint config, `.gitignore`, `.env.example`, CI skeleton, `README.md` and this `overall.md`.
+- [x] Validate `./gradlew help`, web `pnpm build`, and Android `assembleDebug`.
 
 **Gate:** All project modules compile; no secrets or generated binaries are committed.
 

@@ -1,0 +1,79 @@
+openapi: 3.1.0
+info:
+  title: TapFlow Demo API
+  version: 0.1.0
+  description: DEMO / NO REAL MONEY. Bootstrap endpoints; payment APIs follow in phase 1.
+servers:
+  - url: http://localhost:8080
+paths:
+  /health/live:
+    get:
+      operationId: getLiveness
+      summary: Process liveness only
+      responses:
+        '200':
+          description: Process is running. Does not assert database readiness.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Liveness'
+  /health/ready:
+    get:
+      operationId: getReadiness
+      summary: Persistence readiness
+      responses:
+        '503':
+          description: Persistence has not been implemented in the bootstrap phase.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Readiness'
+  /api/v1/status:
+    get:
+      operationId: getStatus
+      summary: Current implementation phase
+      responses:
+        '200':
+          description: API bootstrap status. DEMO / NO REAL MONEY.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+components:
+  schemas:
+    Liveness:
+      type: object
+      additionalProperties: false
+      required: [status, demo]
+      properties:
+        status:
+          type: string
+          const: alive
+        demo:
+          type: boolean
+          const: true
+    Readiness:
+      type: object
+      additionalProperties: false
+      required: [status, demo]
+      properties:
+        status:
+          type: string
+          const: persistence-not-configured
+        demo:
+          type: boolean
+          const: true
+    Status:
+      type: object
+      additionalProperties: false
+      required: [service, phase, demo]
+      properties:
+        service:
+          type: string
+          const: tapflow-api
+        phase:
+          type: string
+          const: bootstrap
+        demo:
+          type: boolean
+          const: true
