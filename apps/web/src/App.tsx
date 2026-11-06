@@ -59,7 +59,7 @@ export default function App() {
               </h1>
             </div>
             <span className="phase-label">
-              Phase 00 <span>Foundation</span>
+              Phase 01 <span>Foundation</span>
             </span>
           </div>
           <p className="intro">
@@ -130,7 +130,7 @@ export default function App() {
               <li>
                 <span className="step-number">01</span>
                 <h3>Connect your workspace</h3>
-                <p>Database, secure sign-in, and merchant access come next.</p>
+                <p>Secure sign-in and merchant access come next.</p>
                 <span className="step-label">UP NEXT</span>
               </li>
               <li>

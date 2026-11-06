@@ -4,7 +4,7 @@ DEMO / NO REAL MONEY.
 
 ## Bootstrap coverage
 
-- Backend: JUnit 5 with Ktor `testApplication`; checks liveness, phase reporting and unavailable persistence readiness.
+- Backend: JUnit 5 with Ktor `testApplication`, plus real PostgreSQL Testcontainers tests for migrations, constraints, readiness, transaction rollback and seed behavior.
 - Portal: Vitest + Testing Library; checks live response parsing, HTTP failure, invalid demo metadata, visible demo notice and offline recovery UI.
 - Android: Compose instrumentation tests on an emulator/device verify each app's identity and demo boundary. Activity layouts are not duplicated in JVM unit tests.
 - Shared protocol: module is configured for JUnit 5. APDU implementation and behavioral tests begin in phase 3; no placeholder tests are counted as protocol coverage.
@@ -27,13 +27,22 @@ On the Pixel Fold emulator, `android screen capture` prepended a multiple-displa
 
 No physical NFC, device Keystore, auth, transaction or production deployment acceptance is claimed by these checks.
 
+## Verified phase 1 checks — 2026-11-07
+
+- Backend: 21 tests passed. Disposable PostgreSQL 17.11 containers prove fresh migration, repeat migration, schema validation, amount/currency/tenant constraints, append-only ledger behavior, one funding row, readiness failure on history drift, rollback and idempotent Argon2id demo seeding.
+- Railway PostgreSQL 18.6: TLS verified, both migrations applied, 13 application tables present, and live/readiness/status/contract endpoints returned 200 with the optional local database stopped.
+- Railway seed verified: 3 users, 1 merchant, 2 memberships, 1 seed audit event, 0 virtual cards and 0 wallets. No passwords are printed or stored in source control.
+- Portal: 5 tests passed; ESLint, strict typecheck, production build, formatting, OpenAPI validation and generated-type consistency passed.
+- Tests never load the private runtime `.env`; Testcontainers databases are independent of Railway.
+- No Android source behavior changed in phase 1. The emulator evidence above remains the bootstrap baseline, not a new NFC or authentication check.
+
 ## Test-first workflow
 
 Start a behavior change with a failing test, verify its failure, implement the smallest change, and run the affected checks. Tests must assert observable behavior. Keep secrets out of fixtures and test output. Investigate a failing boundary before changing unrelated configuration.
 
 ## Later phase gates
 
-Real PostgreSQL Testcontainers tests must prove wallet, refund, idempotency and tenant-isolation invariants. Mock repositories or H2 cannot establish transaction correctness. API contract validation expands with the complete v1 schema in phase 1.
+Later phases must extend real PostgreSQL Testcontainers coverage to transactional wallet, refund, idempotency and tenant-authorization invariants. Mock repositories or H2 cannot establish transaction correctness. Phase 1 constraint tests and API contract validation do not establish those later service behaviors.
 
 Android protocol/signature tests cover canonical bytes and malformed APDUs. Keystore instrumentation establishes API behavior on the tested runtime, not hardware-backed key security on every device. Physical NFC testing remains separate, with device/OS combinations recorded.
 

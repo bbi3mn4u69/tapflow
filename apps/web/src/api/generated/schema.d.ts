@@ -11,7 +11,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Process liveness only */
+        /**
+         * Check process liveness
+         * @description Check process liveness. DEMO / NO REAL MONEY.
+         */
         get: operations["getLiveness"];
         put?: never;
         post?: never;
@@ -28,7 +31,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Persistence readiness */
+        /**
+         * Check database connectivity and migration state
+         * @description Check database connectivity and migration state. DEMO / NO REAL MONEY.
+         */
         get: operations["getReadiness"];
         put?: never;
         post?: never;
@@ -45,8 +51,575 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Current implementation phase */
+        /**
+         * Read the implementation phase
+         * @description Read the implementation phase. DEMO / NO REAL MONEY.
+         */
         get: operations["getStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/openapi.yaml": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the v1 API contract
+         * @description Contract for the complete planned v1. Only phase 1 system endpoints are implemented at this milestone. DEMO / NO REAL MONEY.
+         */
+        get: operations["getOpenApi"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/web/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sign in on web
+         * @description Sign in on web. DEMO / NO REAL MONEY.
+         */
+        post: operations["webLogin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/web/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rotate web refresh session
+         * @description Atomically rotate the refresh token. Reuse revokes the token family. Web cookie mutations require allowed Origin/Referer and CSRF protection. DEMO / NO REAL MONEY.
+         */
+        post: operations["webRefresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/web/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke web session
+         * @description Revoke web session. DEMO / NO REAL MONEY.
+         */
+        post: operations["webLogout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/mobile/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sign in on mobile
+         * @description Sign in on mobile. DEMO / NO REAL MONEY.
+         */
+        post: operations["mobileLogin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/mobile/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rotate mobile refresh session
+         * @description Atomically rotate the refresh token. Reuse revokes the token family. Web cookie mutations require allowed Origin/Referer and CSRF protection. DEMO / NO REAL MONEY.
+         */
+        post: operations["mobileRefresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/mobile/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke mobile session
+         * @description Revoke mobile session. DEMO / NO REAL MONEY.
+         */
+        post: operations["mobileLogout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the authenticated profile and memberships
+         * @description Read the authenticated profile and memberships. DEMO / NO REAL MONEY.
+         */
+        get: operations["getMe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/demo/customer-register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Register a demo customer only when explicitly enabled
+         * @description Disabled by default; explicitly gated and rate limited. Never creates a merchant, owner or administrator. DEMO / NO REAL MONEY.
+         */
+        post: operations["registerDemoCustomer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List only the customer’s own cards
+         * @description List only the customer’s own cards. DEMO / NO REAL MONEY.
+         */
+        get: operations["listCards"];
+        put?: never;
+        /**
+         * Enroll the customer device public key
+         * @description Enroll the customer device public key. DEMO / NO REAL MONEY.
+         */
+        post: operations["enrollCard"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cards/{cardId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read an owned demo card
+         * @description Read an owned demo card. DEMO / NO REAL MONEY.
+         */
+        get: operations["getCard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cards/{cardId}/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Disable an owned demo card
+         * @description Disable an owned demo card. DEMO / NO REAL MONEY.
+         */
+        post: operations["disableCard"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cards/{cardId}/wallet": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read an owned demo wallet
+         * @description Read an owned demo wallet. DEMO / NO REAL MONEY.
+         */
+        get: operations["getWallet"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cards/{cardId}/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read owned wallet ledger activity
+         * @description Read owned wallet ledger activity. DEMO / NO REAL MONEY.
+         */
+        get: operations["getActivity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/merchants/{merchantId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read an authorised merchant
+         * @description Read an authorised merchant. DEMO / NO REAL MONEY.
+         */
+        get: operations["getMerchant"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/merchants/{merchantId}/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read server-derived merchant totals
+         * @description OWNER/OPERATOR. Group payments by authorisation time in [from,to), then subtract all refunds associated with those payments, even if refunded later. Maximum 366-day interval. DEMO / NO REAL MONEY.
+         */
+        get: operations["getDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/merchants/{merchantId}/terminals/pairing-codes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * OWNER: generate a single-use pairing code
+         * @description OWNER: generate a single-use pairing code. DEMO / NO REAL MONEY.
+         */
+        post: operations["createPairingCode"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/merchants/{merchantId}/terminals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * OWNER/OPERATOR: list merchant terminals
+         * @description OWNER/OPERATOR: list merchant terminals. DEMO / NO REAL MONEY.
+         */
+        get: operations["listTerminals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/merchants/{merchantId}/terminals/{terminalId}/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * OWNER: disable a merchant terminal
+         * @description OWNER: disable a merchant terminal. DEMO / NO REAL MONEY.
+         */
+        post: operations["disableTerminal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/terminals/pair": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pair a terminal with a one-time owner code
+         * @description Requires merchant membership matching the code. Consume code and pair installation atomically. Retry with the same idempotency key and installation ID after response loss. DEMO / NO REAL MONEY.
+         */
+        post: operations["pairTerminal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/merchants/{merchantId}/payment-intents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create a 90-second single-use payment intent
+         * @description Create a 90-second single-use payment intent. DEMO / NO REAL MONEY.
+         */
+        post: operations["createIntent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/merchants/{merchantId}/payment-intents/{intentId}/authorise": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify proof and decide the demo payment exactly once
+         * @description Requires the original active paired terminal. Rebuild canonical signed bytes from server state. APPROVED and business DECLINED (CARD_BLOCKED or INSUFFICIENT_FUNDS) return HTTP 200; invalid proof is HTTP 400. Wallet, ledger and idempotency response commit atomically. Exact retries return the original status and body. DEMO / NO REAL MONEY.
+         */
+        post: operations["authoriseIntent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/merchants/{merchantId}/payment-intents/{intentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Recover the authoritative payment intent state
+         * @description Recover the authoritative payment intent state. DEMO / NO REAL MONEY.
+         */
+        get: operations["getIntent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/merchants/{merchantId}/payment-intents/{intentId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel a still-pending intent
+         * @description Cancel a still-pending intent. DEMO / NO REAL MONEY.
+         */
+        post: operations["cancelIntent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/merchants/{merchantId}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List merchant payments with refund summaries
+         * @description List merchant payments with refund summaries. DEMO / NO REAL MONEY.
+         */
+        get: operations["listPayments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/merchants/{merchantId}/payments/{paymentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read a merchant payment and refund history
+         * @description Read a merchant payment and refund history. DEMO / NO REAL MONEY.
+         */
+        get: operations["getPayment"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/merchants/{merchantId}/payments/{paymentId}/refunds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * OWNER: issue an atomic partial or full demo refund
+         * @description Only approved payments, positive amount at most the remaining refundable amount. Lock payment then wallet. Append credit, refund, audit and idempotency outcome in the same transaction. OPERATOR gets 403; another merchant’s resource gets 404. DEMO / NO REAL MONEY.
+         */
+        post: operations["createRefund"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/merchants/{merchantId}/audit-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * OWNER: read sanitised merchant audit events
+         * @description OWNER: read sanitised merchant audit events. DEMO / NO REAL MONEY.
+         */
+        get: operations["listAuditEvents"];
         put?: never;
         post?: never;
         delete?: never;
@@ -59,31 +632,391 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        Liveness: {
-            /** @constant */
-            status: "alive";
-            /** @constant */
-            demo: true;
-        };
-        Readiness: {
-            /** @constant */
-            status: "persistence-not-configured";
-            /** @constant */
-            demo: true;
-        };
+        /** Format: uuid */
+        UUID: string;
+        /** Format: date-time */
+        Timestamp: string;
+        /** Format: int64 */
+        AmountMinor: number;
+        /** Format: int64 */
+        TotalMinor: number;
+        /** @constant */
+        Currency: "AUD";
+        /** @enum {string} */
+        PaymentStatus: "AWAITING_TAP" | "APPROVED" | "DECLINED" | "EXPIRED" | "CANCELLED";
+        /** @enum {string} */
+        RefundStatus: "NONE" | "PARTIAL" | "FULL";
+        /** @enum {string} */
+        DecisionCode: "APPROVED" | "CARD_BLOCKED" | "INSUFFICIENT_FUNDS";
+        /** @enum {string} */
+        RefundReason: "CUSTOMER_REQUEST" | "DUPLICATE" | "OTHER";
+        /** @enum {string} */
+        ErrorCode: "VALIDATION_ERROR" | "UNSUPPORTED_CURRENCY" | "INVALID_CARD_PROOF" | "UNAUTHENTICATED" | "INSUFFICIENT_ROLE" | "RESOURCE_NOT_FOUND" | "IDEMPOTENCY_KEY_REUSED" | "INVALID_PAYMENT_STATE" | "REFUND_EXCEEDS_REMAINING" | "TERMINAL_DISABLED" | "PAYMENT_INTENT_EXPIRED" | "RATE_LIMITED" | "INTERNAL_ERROR" | "SERVICE_UNAVAILABLE" | "PAIRING_CODE_INVALID" | "PAIRING_CODE_EXPIRED" | "CARD_ALREADY_ENROLLED";
         Status: {
             /** @constant */
             service: "tapflow-api";
             /** @constant */
-            phase: "bootstrap";
+            phase: "foundation";
+            /** @constant */
+            demo: true;
+        };
+        Health: {
+            /** @enum {string} */
+            status: "alive" | "ready";
+            /** @constant */
+            demo: true;
+        };
+        ErrorEnvelope: {
+            error: {
+                code: components["schemas"]["ErrorCode"];
+                message: string;
+                requestId: components["schemas"]["UUID"];
+                details: {
+                    [key: string]: unknown;
+                };
+            };
+            /** @constant */
+            demo: true;
+        };
+        LoginRequest: {
+            /** Format: email */
+            email: string;
+            password: string;
+        };
+        RegisterRequest: {
+            /** Format: email */
+            email: string;
+            password: string;
+        };
+        MobileRefreshRequest: {
+            refreshToken: string;
+        };
+        Membership: {
+            merchantId: components["schemas"]["UUID"];
+            merchantName: string;
+            /** @enum {string} */
+            role: "OWNER" | "OPERATOR";
+        };
+        SessionUser: {
+            id: components["schemas"]["UUID"];
+            /** Format: email */
+            email: string;
+            /** @enum {string} */
+            accountType: "CUSTOMER" | "MERCHANT" | "SYSTEM_ADMIN";
+            memberships: components["schemas"]["Membership"][];
+        };
+        WebSession: {
+            accessToken: string;
+            /** @constant */
+            expiresInSeconds: 900;
+            user: components["schemas"]["SessionUser"];
+            /** @constant */
+            demo: true;
+        };
+        MobileSession: {
+            accessToken: string;
+            refreshToken: string;
+            /** @constant */
+            expiresInSeconds: 900;
+            user: components["schemas"]["SessionUser"];
+            /** @constant */
+            demo: true;
+        };
+        CardEnrollmentRequest: {
+            label: string;
+            /** @constant */
+            algorithm: "P256_SHA256_ECDSA";
+            /**
+             * Format: byte
+             * @description X.509 SPKI DER encoding of a P-256 public key only. The private key never leaves the device.
+             */
+            publicKeySpkiBase64: string;
+        };
+        Card: {
+            cardId: components["schemas"]["UUID"];
+            label: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "BLOCKED";
+            createdAt: components["schemas"]["Timestamp"];
+            /** @constant */
+            demo: true;
+        };
+        CardList: {
+            items: components["schemas"]["Card"][];
+            /** @constant */
+            demo: true;
+        };
+        Wallet: {
+            cardId: components["schemas"]["UUID"];
+            balanceMinor: components["schemas"]["TotalMinor"];
+            currency: components["schemas"]["Currency"];
+            /** @constant */
+            demo: true;
+        };
+        WalletEntry: {
+            id: components["schemas"]["UUID"];
+            /** @enum {string} */
+            entryType: "DEMO_FUNDING" | "DEBIT" | "CREDIT";
+            amountMinor: components["schemas"]["TotalMinor"];
+            balanceAfterMinor: components["schemas"]["TotalMinor"];
+            merchantName: string | null;
+            paymentId: components["schemas"]["UUID"] | null;
+            refundId: components["schemas"]["UUID"] | null;
+            createdAt: components["schemas"]["Timestamp"];
+        };
+        Merchant: {
+            merchantId: components["schemas"]["UUID"];
+            name: string;
+            slug: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "SUSPENDED";
+            /** @constant */
+            demo: true;
+        };
+        Terminal: {
+            terminalId: components["schemas"]["UUID"];
+            merchantId: components["schemas"]["UUID"];
+            label: string;
+            /** @enum {string} */
+            status: "ACTIVE" | "DISABLED";
+            pairedAt: components["schemas"]["Timestamp"];
+            lastSeenAt: components["schemas"]["Timestamp"] | null;
+            /** @constant */
+            demo: true;
+        };
+        PairingCodeRequest: {
+            labelHint?: string;
+        };
+        PairingCode: {
+            /** @description 65 bits of entropy, shown once; expires after 10 minutes and is consumed once. */
+            pairingCode: string;
+            merchantId: components["schemas"]["UUID"];
+            expiresAt: components["schemas"]["Timestamp"];
+            /** @constant */
+            demo: true;
+        };
+        PairTerminalRequest: {
+            pairingCode: string;
+            installationId: components["schemas"]["UUID"];
+            label: string;
+        };
+        CreateIntentRequest: {
+            terminalId: components["schemas"]["UUID"];
+            amountMinor: components["schemas"]["AmountMinor"];
+            currency: components["schemas"]["Currency"];
+            orderReference?: string | null;
+        };
+        Challenge: {
+            /** @constant */
+            protocolVersion: 1;
+            /**
+             * Format: byte
+             * @description Exactly 16 decoded random bytes.
+             */
+            nonceBase64: string;
+            /** Format: int64 */
+            expiresAtEpochMillis: number;
+        };
+        PaymentIntent: {
+            id: components["schemas"]["UUID"];
+            merchantId: components["schemas"]["UUID"];
+            terminalId: components["schemas"]["UUID"];
+            amountMinor: components["schemas"]["AmountMinor"];
+            currency: components["schemas"]["Currency"];
+            status: components["schemas"]["PaymentStatus"];
+            challenge?: components["schemas"]["Challenge"];
+            expiresAt: components["schemas"]["Timestamp"];
+            createdAt: components["schemas"]["Timestamp"];
+            orderReference?: string | null;
+            decisionCode?: components["schemas"]["DecisionCode"] | null;
+            /** @constant */
+            demo: true;
+        };
+        AuthoriseRequest: {
+            terminalId: components["schemas"]["UUID"];
+            cardId: components["schemas"]["UUID"];
+            /**
+             * Format: byte
+             * @description ASN.1 DER ECDSA signature, at most 100 decoded bytes. No client-supplied amount or nonce is trusted.
+             */
+            signatureDerBase64: string;
+        };
+        AuthorisationResult: {
+            paymentId: components["schemas"]["UUID"];
+            /** @enum {string} */
+            status: "APPROVED" | "DECLINED";
+            decisionCode: components["schemas"]["DecisionCode"];
+            amountMinor: components["schemas"]["AmountMinor"];
+            currency: components["schemas"]["Currency"];
+            refundedAmountMinor: components["schemas"]["TotalMinor"];
+            refundStatus: components["schemas"]["RefundStatus"];
+            merchantName: string;
+            receiptNumber: string | null;
+            authorisedAt: components["schemas"]["Timestamp"];
+            /** @constant */
+            demo: true;
+        };
+        Refund: {
+            refundId: components["schemas"]["UUID"];
+            paymentId: components["schemas"]["UUID"];
+            amountMinor: components["schemas"]["AmountMinor"];
+            reason: components["schemas"]["RefundReason"];
+            createdAt: components["schemas"]["Timestamp"];
+        };
+        PaymentSummary: {
+            paymentId: components["schemas"]["UUID"];
+            merchantId: components["schemas"]["UUID"];
+            terminalId: components["schemas"]["UUID"];
+            terminalLabel: string;
+            amountMinor: components["schemas"]["AmountMinor"];
+            refundedAmountMinor: components["schemas"]["TotalMinor"];
+            netAmountMinor: components["schemas"]["TotalMinor"];
+            refundStatus: components["schemas"]["RefundStatus"];
+            status: components["schemas"]["PaymentStatus"];
+            decisionCode: components["schemas"]["DecisionCode"] | null;
+            currency: components["schemas"]["Currency"];
+            receiptNumber: string | null;
+            createdAt: components["schemas"]["Timestamp"];
+            authorisedAt: components["schemas"]["Timestamp"] | null;
+            /** @constant */
+            demo: true;
+        };
+        RefundRequest: {
+            amountMinor: components["schemas"]["AmountMinor"];
+            reason: components["schemas"]["RefundReason"];
+        };
+        RefundResult: {
+            refundId: components["schemas"]["UUID"];
+            paymentId: components["schemas"]["UUID"];
+            amountMinor: components["schemas"]["AmountMinor"];
+            currency: components["schemas"]["Currency"];
+            refundStatus: components["schemas"]["RefundStatus"];
+            totalRefundedMinor: components["schemas"]["TotalMinor"];
+            /** @constant */
+            demo: true;
+        };
+        DailyBucket: {
+            /** Format: date */
+            date: string;
+            approvedCount: components["schemas"]["TotalMinor"];
+            grossApprovedMinor: components["schemas"]["TotalMinor"];
+        };
+        Dashboard: {
+            approvedCount: components["schemas"]["TotalMinor"];
+            declinedCount: components["schemas"]["TotalMinor"];
+            grossApprovedMinor: components["schemas"]["TotalMinor"];
+            totalRefundedMinor: components["schemas"]["TotalMinor"];
+            netApprovedMinor: components["schemas"]["TotalMinor"];
+            currency: components["schemas"]["Currency"];
+            from: components["schemas"]["Timestamp"];
+            to: components["schemas"]["Timestamp"];
+            dailyBuckets: components["schemas"]["DailyBucket"][];
+            recentPayments: components["schemas"]["PaymentSummary"][];
+            /** @constant */
+            demo: true;
+        };
+        AuditEvent: {
+            id: components["schemas"]["UUID"];
+            actorUserId: components["schemas"]["UUID"] | null;
+            merchantId: components["schemas"]["UUID"] | null;
+            eventType: string;
+            resourceType: string;
+            resourceId: components["schemas"]["UUID"] | null;
+            /** @description Sanitised event metadata. Never tokens, passwords, keys, signatures or APDUs. */
+            details: {
+                [key: string]: unknown;
+            };
+            requestId: components["schemas"]["UUID"];
+            createdAt: components["schemas"]["Timestamp"];
+        };
+        PaymentDetail: {
+            paymentId: components["schemas"]["UUID"];
+            merchantId: components["schemas"]["UUID"];
+            terminalId: components["schemas"]["UUID"];
+            terminalLabel: string;
+            amountMinor: components["schemas"]["AmountMinor"];
+            refundedAmountMinor: components["schemas"]["TotalMinor"];
+            netAmountMinor: components["schemas"]["TotalMinor"];
+            refundStatus: components["schemas"]["RefundStatus"];
+            status: components["schemas"]["PaymentStatus"];
+            decisionCode: components["schemas"]["DecisionCode"] | null;
+            currency: components["schemas"]["Currency"];
+            receiptNumber: string | null;
+            createdAt: components["schemas"]["Timestamp"];
+            authorisedAt: components["schemas"]["Timestamp"] | null;
+            /** @constant */
+            demo: true;
+            merchantName: string;
+            cardAlias: string | null;
+            refunds: components["schemas"]["Refund"][];
+        };
+        ActivityPage: {
+            items: components["schemas"]["WalletEntry"][];
+            nextCursor: string | null;
+            /** @constant */
+            demo: true;
+        };
+        TerminalPage: {
+            items: components["schemas"]["Terminal"][];
+            nextCursor: string | null;
+            /** @constant */
+            demo: true;
+        };
+        PaymentPage: {
+            items: components["schemas"]["PaymentSummary"][];
+            nextCursor: string | null;
+            /** @constant */
+            demo: true;
+        };
+        AuditPage: {
+            items: components["schemas"]["AuditEvent"][];
+            nextCursor: string | null;
             /** @constant */
             demo: true;
         };
     };
-    responses: never;
-    parameters: never;
+    responses: {
+        /** @description Safe machine-readable error; requestId also appears in X-Request-ID. HTTP status follows the error catalogue. 429 includes Retry-After. No internal exceptions or credentials. */
+        Error: {
+            headers: {
+                "X-Request-ID": components["headers"]["RequestId"];
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorEnvelope"];
+            };
+        };
+        /** @description Rate limited. Retry after the indicated number of seconds. */
+        RateLimited: {
+            headers: {
+                "X-Request-ID": components["headers"]["RequestId"];
+                /** @description Seconds before retrying. */
+                "Retry-After": number;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorEnvelope"];
+            };
+        };
+    };
+    parameters: {
+        /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+        RequestId: components["schemas"]["UUID"];
+        /** @description UUID v4, stable across exact retries. Same key with changed parsed payload returns 409. Retained for at least 24 hours. */
+        IdempotencyKey: string;
+        Limit: number;
+        /** @description Opaque keyset cursor, ordered by created_at DESC and id DESC. */
+        Cursor: string;
+        /** @description Inclusive UTC start; interval at most 366 days. */
+        From: components["schemas"]["Timestamp"];
+        /** @description Exclusive UTC end; interval at most 366 days. */
+        To: components["schemas"]["Timestamp"];
+    };
     requestBodies: never;
-    headers: never;
+    headers: {
+        /** @description Server-validated or generated request UUID. */
+        RequestId: components["schemas"]["UUID"];
+    };
     pathItems: never;
 }
 export type $defs = Record<string, never>;
@@ -91,61 +1024,1144 @@ export interface operations {
     getLiveness: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Process is running. Does not assert database readiness. */
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Liveness"];
+                    "application/json": components["schemas"]["Health"];
                 };
             };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
         };
     };
     getReadiness: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Persistence has not been implemented in the bootstrap phase. */
-            503: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Readiness"];
+                    "application/json": components["schemas"]["Health"];
                 };
             };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
         };
     };
     getStatus: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description API bootstrap status. DEMO / NO REAL MONEY. */
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
             200: {
                 headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["Status"];
                 };
             };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    getOpenApi: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Versioned OpenAPI 3.1 YAML. DEMO / NO REAL MONEY. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/yaml": string;
+                };
+            };
+        };
+    };
+    webLogin: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    /** @description Rotating tapflow_refresh cookie; HttpOnly, Secure, SameSite=Lax, Path=/api/v1/auth/web. Logout clears it. */
+                    "Set-Cookie"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebSession"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            410: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    webRefresh: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    /** @description Rotating tapflow_refresh cookie; HttpOnly, Secure, SameSite=Lax, Path=/api/v1/auth/web. Logout clears it. */
+                    "Set-Cookie"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebSession"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            410: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    webLogout: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Operation complete. DEMO / NO REAL MONEY. */
+            204: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    /** @description Rotating tapflow_refresh cookie; HttpOnly, Secure, SameSite=Lax, Path=/api/v1/auth/web. Logout clears it. */
+                    "Set-Cookie"?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            410: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    mobileLogin: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MobileSession"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            410: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    mobileRefresh: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MobileRefreshRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MobileSession"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            410: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    mobileLogout: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MobileRefreshRequest"];
+            };
+        };
+        responses: {
+            /** @description Operation complete. DEMO / NO REAL MONEY. */
+            204: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            410: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    getMe: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionUser"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    registerDemoCustomer: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionUser"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            410: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    listCards: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardList"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    enrollCard: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+                /** @description UUID v4, stable across exact retries. Same key with changed parsed payload returns 409. Retained for at least 24 hours. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CardEnrollmentRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Card"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            410: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    getCard: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path: {
+                cardId: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Card"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    disableCard: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path: {
+                cardId: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Card"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            410: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    getWallet: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path: {
+                cardId: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Wallet"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    getActivity: {
+        parameters: {
+            query?: {
+                limit?: components["parameters"]["Limit"];
+                /** @description Opaque keyset cursor, ordered by created_at DESC and id DESC. */
+                cursor?: components["parameters"]["Cursor"];
+            };
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path: {
+                cardId: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityPage"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    getMerchant: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path: {
+                merchantId: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Merchant"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    getDashboard: {
+        parameters: {
+            query?: {
+                /** @description Inclusive UTC start; interval at most 366 days. */
+                from?: components["parameters"]["From"];
+                /** @description Exclusive UTC end; interval at most 366 days. */
+                to?: components["parameters"]["To"];
+            };
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path: {
+                merchantId: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Dashboard"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    createPairingCode: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+                /** @description UUID v4, stable across exact retries. Same key with changed parsed payload returns 409. Retained for at least 24 hours. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                merchantId: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PairingCodeRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PairingCode"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            410: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    listTerminals: {
+        parameters: {
+            query?: {
+                limit?: components["parameters"]["Limit"];
+                /** @description Opaque keyset cursor, ordered by created_at DESC and id DESC. */
+                cursor?: components["parameters"]["Cursor"];
+            };
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path: {
+                merchantId: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TerminalPage"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    disableTerminal: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path: {
+                merchantId: components["schemas"]["UUID"];
+                terminalId: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Terminal"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            410: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    pairTerminal: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+                /** @description UUID v4, stable across exact retries. Same key with changed parsed payload returns 409. Retained for at least 24 hours. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PairTerminalRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Terminal"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            410: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    createIntent: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+                /** @description UUID v4, stable across exact retries. Same key with changed parsed payload returns 409. Retained for at least 24 hours. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                merchantId: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateIntentRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentIntent"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            410: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    authoriseIntent: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+                /** @description UUID v4, stable across exact retries. Same key with changed parsed payload returns 409. Retained for at least 24 hours. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                merchantId: components["schemas"]["UUID"];
+                intentId: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuthoriseRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorisationResult"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            410: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    getIntent: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path: {
+                merchantId: components["schemas"]["UUID"];
+                intentId: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentIntent"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    cancelIntent: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path: {
+                merchantId: components["schemas"]["UUID"];
+                intentId: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentIntent"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            410: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    listPayments: {
+        parameters: {
+            query?: {
+                limit?: components["parameters"]["Limit"];
+                /** @description Opaque keyset cursor, ordered by created_at DESC and id DESC. */
+                cursor?: components["parameters"]["Cursor"];
+                /** @description Inclusive UTC start; interval at most 366 days. */
+                from?: components["parameters"]["From"];
+                /** @description Exclusive UTC end; interval at most 366 days. */
+                to?: components["parameters"]["To"];
+                status?: components["schemas"]["PaymentStatus"];
+            };
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path: {
+                merchantId: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentPage"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    getPayment: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path: {
+                merchantId: components["schemas"]["UUID"];
+                paymentId: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentDetail"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    createRefund: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+                /** @description UUID v4, stable across exact retries. Same key with changed parsed payload returns 409. Retained for at least 24 hours. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                merchantId: components["schemas"]["UUID"];
+                paymentId: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefundRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            201: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RefundResult"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            409: components["responses"]["Error"];
+            410: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
+        };
+    };
+    listAuditEvents: {
+        parameters: {
+            query?: {
+                limit?: components["parameters"]["Limit"];
+                /** @description Opaque keyset cursor, ordered by created_at DESC and id DESC. */
+                cursor?: components["parameters"]["Cursor"];
+                /** @description Inclusive UTC start; interval at most 366 days. */
+                from?: components["parameters"]["From"];
+                /** @description Exclusive UTC end; interval at most 366 days. */
+                to?: components["parameters"]["To"];
+                eventType?: string;
+            };
+            header?: {
+                /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
+                "X-Request-ID"?: components["parameters"]["RequestId"];
+            };
+            path: {
+                merchantId: components["schemas"]["UUID"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful demo response. DEMO / NO REAL MONEY. */
+            200: {
+                headers: {
+                    "X-Request-ID": components["headers"]["RequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditPage"];
+                };
+            };
+            400: components["responses"]["Error"];
+            401: components["responses"]["Error"];
+            403: components["responses"]["Error"];
+            404: components["responses"]["Error"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["Error"];
+            503: components["responses"]["Error"];
         };
     };
 }

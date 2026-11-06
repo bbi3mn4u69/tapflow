@@ -1,79 +1,2562 @@
+---
 openapi: 3.1.0
 info:
   title: TapFlow Demo API
-  version: 0.1.0
-  description: DEMO / NO REAL MONEY. Bootstrap endpoints; payment APIs follow in phase 1.
+  version: 0.2.0
+  description: DEMO / NO REAL MONEY. Proprietary NFC simulator; no bank-card credentials
+    or real transfers. This is the complete v1 contract. At phase 1 only health, status
+    and contract endpoints run; other operations are implemented in the indicated
+    x-implementation-phase. All merchant resources enforce membership server-side;
+    cross-tenant resources return 404. Money is integer AUD cents; timestamps are
+    UTC.
+  contact:
+    name: TapFlow project
+    url: https://github.com/bbi3mn4u69/tapflow
 servers:
-  - url: http://localhost:8080
+- url: "/"
+  description: 'Same-origin API. Local server: http://localhost:8080. Deployed environments
+    use HTTPS.'
+tags:
+- name: System
+  description: Process, persistence and API documentation.
+- name: Authentication
+  description: Separate web-cookie and mobile-token sessions.
+- name: Cards
+  description: Customer-owned device keys and demo wallets.
+- name: Merchants
+  description: Merchant-scoped views, reports and audit.
+- name: Terminals
+  description: Single-use pairing and merchant terminal lifecycle.
+- name: Payments
+  description: Demo authorisation, ledger and owner refunds.
+security:
+- bearerAuth: []
 paths:
-  /health/live:
+  "/health/live":
     get:
       operationId: getLiveness
-      summary: Process liveness only
+      summary: Check process liveness
+      description: Check process liveness. DEMO / NO REAL MONEY.
+      tags:
+      - System
+      security: []
+      x-implementation-phase: 1
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
       responses:
         '200':
-          description: Process is running. Does not assert database readiness.
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Liveness'
-  /health/ready:
+                "$ref": "#/components/schemas/Health"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+  "/health/ready":
     get:
       operationId: getReadiness
-      summary: Persistence readiness
-      responses:
-        '503':
-          description: Persistence has not been implemented in the bootstrap phase.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Readiness'
-  /api/v1/status:
-    get:
-      operationId: getStatus
-      summary: Current implementation phase
+      summary: Check database connectivity and migration state
+      description: Check database connectivity and migration state. DEMO / NO REAL
+        MONEY.
+      tags:
+      - System
+      security: []
+      x-implementation-phase: 1
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
       responses:
         '200':
-          description: API bootstrap status. DEMO / NO REAL MONEY.
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Status'
+                "$ref": "#/components/schemas/Health"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+  "/api/v1/status":
+    get:
+      operationId: getStatus
+      summary: Read the implementation phase
+      description: Read the implementation phase. DEMO / NO REAL MONEY.
+      tags:
+      - System
+      security: []
+      x-implementation-phase: 1
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      responses:
+        '200':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Status"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+  "/api/v1/openapi.yaml":
+    get:
+      operationId: getOpenApi
+      summary: Read the v1 API contract
+      description: Contract for the complete planned v1. Only phase 1 system endpoints
+        are implemented at this milestone. DEMO / NO REAL MONEY.
+      tags:
+      - System
+      security: []
+      x-implementation-phase: 1
+      responses:
+        '200':
+          description: Versioned OpenAPI 3.1 YAML. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/yaml:
+              schema:
+                type: string
+  "/api/v1/auth/web/login":
+    post:
+      operationId: webLogin
+      summary: Sign in on web
+      description: Sign in on web. DEMO / NO REAL MONEY.
+      tags:
+      - Authentication
+      security: []
+      x-implementation-phase: 2
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      responses:
+        '200':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+            Set-Cookie:
+              description: Rotating tapflow_refresh cookie; HttpOnly, Secure, SameSite=Lax,
+                Path=/api/v1/auth/web. Logout clears it.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/WebSession"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '409':
+          "$ref": "#/components/responses/Error"
+        '410':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/LoginRequest"
+  "/api/v1/auth/web/refresh":
+    post:
+      operationId: webRefresh
+      summary: Rotate web refresh session
+      description: Atomically rotate the refresh token. Reuse revokes the token family.
+        Web cookie mutations require allowed Origin/Referer and CSRF protection. DEMO
+        / NO REAL MONEY.
+      tags:
+      - Authentication
+      security:
+      - RefreshCookie: []
+      x-implementation-phase: 2
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      responses:
+        '200':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+            Set-Cookie:
+              description: Rotating tapflow_refresh cookie; HttpOnly, Secure, SameSite=Lax,
+                Path=/api/v1/auth/web. Logout clears it.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/WebSession"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '409':
+          "$ref": "#/components/responses/Error"
+        '410':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+  "/api/v1/auth/web/logout":
+    post:
+      operationId: webLogout
+      summary: Revoke web session
+      description: Revoke web session. DEMO / NO REAL MONEY.
+      tags:
+      - Authentication
+      security: []
+      x-implementation-phase: 2
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      responses:
+        '204':
+          description: Operation complete. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+            Set-Cookie:
+              description: Rotating tapflow_refresh cookie; HttpOnly, Secure, SameSite=Lax,
+                Path=/api/v1/auth/web. Logout clears it.
+              schema:
+                type: string
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '409':
+          "$ref": "#/components/responses/Error"
+        '410':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+  "/api/v1/auth/mobile/login":
+    post:
+      operationId: mobileLogin
+      summary: Sign in on mobile
+      description: Sign in on mobile. DEMO / NO REAL MONEY.
+      tags:
+      - Authentication
+      security: []
+      x-implementation-phase: 2
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      responses:
+        '200':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/MobileSession"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '409':
+          "$ref": "#/components/responses/Error"
+        '410':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/LoginRequest"
+  "/api/v1/auth/mobile/refresh":
+    post:
+      operationId: mobileRefresh
+      summary: Rotate mobile refresh session
+      description: Atomically rotate the refresh token. Reuse revokes the token family.
+        Web cookie mutations require allowed Origin/Referer and CSRF protection. DEMO
+        / NO REAL MONEY.
+      tags:
+      - Authentication
+      security: []
+      x-implementation-phase: 2
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      responses:
+        '200':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/MobileSession"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '409':
+          "$ref": "#/components/responses/Error"
+        '410':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/MobileRefreshRequest"
+  "/api/v1/auth/mobile/logout":
+    post:
+      operationId: mobileLogout
+      summary: Revoke mobile session
+      description: Revoke mobile session. DEMO / NO REAL MONEY.
+      tags:
+      - Authentication
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 2
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      responses:
+        '204':
+          description: Operation complete. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '409':
+          "$ref": "#/components/responses/Error"
+        '410':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/MobileRefreshRequest"
+  "/api/v1/me":
+    get:
+      operationId: getMe
+      summary: Read the authenticated profile and memberships
+      description: Read the authenticated profile and memberships. DEMO / NO REAL
+        MONEY.
+      tags:
+      - Authentication
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 2
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      responses:
+        '200':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SessionUser"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+  "/api/v1/auth/demo/customer-register":
+    post:
+      operationId: registerDemoCustomer
+      summary: Register a demo customer only when explicitly enabled
+      description: Disabled by default; explicitly gated and rate limited. Never creates
+        a merchant, owner or administrator. DEMO / NO REAL MONEY.
+      tags:
+      - Authentication
+      security: []
+      x-implementation-phase: 2
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      responses:
+        '201':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SessionUser"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '409':
+          "$ref": "#/components/responses/Error"
+        '410':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/RegisterRequest"
+  "/api/v1/cards":
+    post:
+      operationId: enrollCard
+      summary: Enroll the customer device public key
+      description: Enroll the customer device public key. DEMO / NO REAL MONEY.
+      tags:
+      - Cards
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 3
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      - "$ref": "#/components/parameters/IdempotencyKey"
+      responses:
+        '201':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Card"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '409':
+          "$ref": "#/components/responses/Error"
+        '410':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CardEnrollmentRequest"
+    get:
+      operationId: listCards
+      summary: List only the customer’s own cards
+      description: List only the customer’s own cards. DEMO / NO REAL MONEY.
+      tags:
+      - Cards
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 3
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      responses:
+        '200':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/CardList"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+  "/api/v1/cards/{cardId}":
+    get:
+      operationId: getCard
+      summary: Read an owned demo card
+      description: Read an owned demo card. DEMO / NO REAL MONEY.
+      tags:
+      - Cards
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 3
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      - name: cardId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      responses:
+        '200':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Card"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+  "/api/v1/cards/{cardId}/disable":
+    post:
+      operationId: disableCard
+      summary: Disable an owned demo card
+      description: Disable an owned demo card. DEMO / NO REAL MONEY.
+      tags:
+      - Cards
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 3
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      - name: cardId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      responses:
+        '200':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Card"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '409':
+          "$ref": "#/components/responses/Error"
+        '410':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+  "/api/v1/cards/{cardId}/wallet":
+    get:
+      operationId: getWallet
+      summary: Read an owned demo wallet
+      description: Read an owned demo wallet. DEMO / NO REAL MONEY.
+      tags:
+      - Cards
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 3
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      - name: cardId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      responses:
+        '200':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Wallet"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+  "/api/v1/cards/{cardId}/activity":
+    get:
+      operationId: getActivity
+      summary: Read owned wallet ledger activity
+      description: Read owned wallet ledger activity. DEMO / NO REAL MONEY.
+      tags:
+      - Cards
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 3
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      - name: cardId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      - "$ref": "#/components/parameters/Limit"
+      - "$ref": "#/components/parameters/Cursor"
+      responses:
+        '200':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ActivityPage"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+  "/api/v1/merchants/{merchantId}":
+    get:
+      operationId: getMerchant
+      summary: Read an authorised merchant
+      description: Read an authorised merchant. DEMO / NO REAL MONEY.
+      tags:
+      - Merchants
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 2
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      - name: merchantId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      responses:
+        '200':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Merchant"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+  "/api/v1/merchants/{merchantId}/dashboard":
+    get:
+      operationId: getDashboard
+      summary: Read server-derived merchant totals
+      description: OWNER/OPERATOR. Group payments by authorisation time in [from,to),
+        then subtract all refunds associated with those payments, even if refunded
+        later. Maximum 366-day interval. DEMO / NO REAL MONEY.
+      tags:
+      - Merchants
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 6
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      - name: merchantId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      - "$ref": "#/components/parameters/From"
+      - "$ref": "#/components/parameters/To"
+      responses:
+        '200':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Dashboard"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+  "/api/v1/merchants/{merchantId}/terminals/pairing-codes":
+    post:
+      operationId: createPairingCode
+      summary: 'OWNER: generate a single-use pairing code'
+      description: 'OWNER: generate a single-use pairing code. DEMO / NO REAL MONEY.'
+      tags:
+      - Terminals
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 4
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      - name: merchantId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      - "$ref": "#/components/parameters/IdempotencyKey"
+      responses:
+        '201':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/PairingCode"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '409':
+          "$ref": "#/components/responses/Error"
+        '410':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/PairingCodeRequest"
+  "/api/v1/merchants/{merchantId}/terminals":
+    get:
+      operationId: listTerminals
+      summary: 'OWNER/OPERATOR: list merchant terminals'
+      description: 'OWNER/OPERATOR: list merchant terminals. DEMO / NO REAL MONEY.'
+      tags:
+      - Terminals
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 4
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      - name: merchantId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      - "$ref": "#/components/parameters/Limit"
+      - "$ref": "#/components/parameters/Cursor"
+      responses:
+        '200':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/TerminalPage"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+  "/api/v1/merchants/{merchantId}/terminals/{terminalId}/disable":
+    post:
+      operationId: disableTerminal
+      summary: 'OWNER: disable a merchant terminal'
+      description: 'OWNER: disable a merchant terminal. DEMO / NO REAL MONEY.'
+      tags:
+      - Terminals
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 6
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      - name: merchantId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      - name: terminalId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      responses:
+        '200':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Terminal"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '409':
+          "$ref": "#/components/responses/Error"
+        '410':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+  "/api/v1/terminals/pair":
+    post:
+      operationId: pairTerminal
+      summary: Pair a terminal with a one-time owner code
+      description: Requires merchant membership matching the code. Consume code and
+        pair installation atomically. Retry with the same idempotency key and installation
+        ID after response loss. DEMO / NO REAL MONEY.
+      tags:
+      - Terminals
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 4
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      - "$ref": "#/components/parameters/IdempotencyKey"
+      responses:
+        '201':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Terminal"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '409':
+          "$ref": "#/components/responses/Error"
+        '410':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/PairTerminalRequest"
+  "/api/v1/merchants/{merchantId}/payment-intents":
+    post:
+      operationId: createIntent
+      summary: Create a 90-second single-use payment intent
+      description: Create a 90-second single-use payment intent. DEMO / NO REAL MONEY.
+      tags:
+      - Payments
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 5
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      - name: merchantId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      - "$ref": "#/components/parameters/IdempotencyKey"
+      responses:
+        '201':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/PaymentIntent"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '409':
+          "$ref": "#/components/responses/Error"
+        '410':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CreateIntentRequest"
+  "/api/v1/merchants/{merchantId}/payment-intents/{intentId}/authorise":
+    post:
+      operationId: authoriseIntent
+      summary: Verify proof and decide the demo payment exactly once
+      description: Requires the original active paired terminal. Rebuild canonical
+        signed bytes from server state. APPROVED and business DECLINED (CARD_BLOCKED
+        or INSUFFICIENT_FUNDS) return HTTP 200; invalid proof is HTTP 400. Wallet,
+        ledger and idempotency response commit atomically. Exact retries return the
+        original status and body. DEMO / NO REAL MONEY.
+      tags:
+      - Payments
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 5
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      - name: merchantId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      - name: intentId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      - "$ref": "#/components/parameters/IdempotencyKey"
+      responses:
+        '200':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/AuthorisationResult"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '409':
+          "$ref": "#/components/responses/Error"
+        '410':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/AuthoriseRequest"
+  "/api/v1/merchants/{merchantId}/payment-intents/{intentId}":
+    get:
+      operationId: getIntent
+      summary: Recover the authoritative payment intent state
+      description: Recover the authoritative payment intent state. DEMO / NO REAL
+        MONEY.
+      tags:
+      - Payments
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 5
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      - name: merchantId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      - name: intentId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      responses:
+        '200':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/PaymentIntent"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+  "/api/v1/merchants/{merchantId}/payment-intents/{intentId}/cancel":
+    post:
+      operationId: cancelIntent
+      summary: Cancel a still-pending intent
+      description: Cancel a still-pending intent. DEMO / NO REAL MONEY.
+      tags:
+      - Payments
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 5
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      - name: merchantId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      - name: intentId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      responses:
+        '200':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/PaymentIntent"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '409':
+          "$ref": "#/components/responses/Error"
+        '410':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+  "/api/v1/merchants/{merchantId}/payments":
+    get:
+      operationId: listPayments
+      summary: List merchant payments with refund summaries
+      description: List merchant payments with refund summaries. DEMO / NO REAL MONEY.
+      tags:
+      - Payments
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 5
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      - name: merchantId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      - "$ref": "#/components/parameters/Limit"
+      - "$ref": "#/components/parameters/Cursor"
+      - "$ref": "#/components/parameters/From"
+      - "$ref": "#/components/parameters/To"
+      - name: status
+        in: query
+        schema:
+          "$ref": "#/components/schemas/PaymentStatus"
+      responses:
+        '200':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/PaymentPage"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+  "/api/v1/merchants/{merchantId}/payments/{paymentId}":
+    get:
+      operationId: getPayment
+      summary: Read a merchant payment and refund history
+      description: Read a merchant payment and refund history. DEMO / NO REAL MONEY.
+      tags:
+      - Payments
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 5
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      - name: merchantId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      - name: paymentId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      responses:
+        '200':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/PaymentDetail"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+  "/api/v1/merchants/{merchantId}/payments/{paymentId}/refunds":
+    post:
+      operationId: createRefund
+      summary: 'OWNER: issue an atomic partial or full demo refund'
+      description: Only approved payments, positive amount at most the remaining refundable
+        amount. Lock payment then wallet. Append credit, refund, audit and idempotency
+        outcome in the same transaction. OPERATOR gets 403; another merchant’s resource
+        gets 404. DEMO / NO REAL MONEY.
+      tags:
+      - Payments
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 6
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      - name: merchantId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      - name: paymentId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      - "$ref": "#/components/parameters/IdempotencyKey"
+      responses:
+        '201':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/RefundResult"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '409':
+          "$ref": "#/components/responses/Error"
+        '410':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/RefundRequest"
+  "/api/v1/merchants/{merchantId}/audit-events":
+    get:
+      operationId: listAuditEvents
+      summary: 'OWNER: read sanitised merchant audit events'
+      description: 'OWNER: read sanitised merchant audit events. DEMO / NO REAL MONEY.'
+      tags:
+      - Merchants
+      security:
+      - bearerAuth: []
+      x-implementation-phase: 6
+      parameters:
+      - "$ref": "#/components/parameters/RequestId"
+      - name: merchantId
+        in: path
+        required: true
+        schema:
+          "$ref": "#/components/schemas/UUID"
+      - "$ref": "#/components/parameters/Limit"
+      - "$ref": "#/components/parameters/Cursor"
+      - "$ref": "#/components/parameters/From"
+      - "$ref": "#/components/parameters/To"
+      - name: eventType
+        in: query
+        schema:
+          type: string
+          maxLength: 80
+      responses:
+        '200':
+          description: Successful demo response. DEMO / NO REAL MONEY.
+          headers:
+            X-Request-ID:
+              "$ref": "#/components/headers/RequestId"
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/AuditPage"
+        '400':
+          "$ref": "#/components/responses/Error"
+        '401':
+          "$ref": "#/components/responses/Error"
+        '403':
+          "$ref": "#/components/responses/Error"
+        '404':
+          "$ref": "#/components/responses/Error"
+        '429':
+          "$ref": "#/components/responses/RateLimited"
+        '500':
+          "$ref": "#/components/responses/Error"
+        '503':
+          "$ref": "#/components/responses/Error"
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 15-minute access JWT; merchant membership is rechecked against
+        the database.
+    RefreshCookie:
+      type: apiKey
+      in: cookie
+      name: tapflow_refresh
+      description: Rotating opaque HttpOnly web refresh cookie. Origin/Referer and
+        CSRF checks apply.
+  parameters:
+    RequestId:
+      name: X-Request-ID
+      in: header
+      required: false
+      description: Canonical UUID; malformed values are replaced by a server-generated
+        ID.
+      schema:
+        "$ref": "#/components/schemas/UUID"
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: UUID v4, stable across exact retries. Same key with changed parsed
+        payload returns 409. Retained for at least 24 hours.
+      schema:
+        type: string
+        format: uuid
+        pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 25
+    Cursor:
+      name: cursor
+      in: query
+      schema:
+        type: string
+        maxLength: 512
+      description: Opaque keyset cursor, ordered by created_at DESC and id DESC.
+    From:
+      name: from
+      in: query
+      schema:
+        "$ref": "#/components/schemas/Timestamp"
+      description: Inclusive UTC start; interval at most 366 days.
+    To:
+      name: to
+      in: query
+      schema:
+        "$ref": "#/components/schemas/Timestamp"
+      description: Exclusive UTC end; interval at most 366 days.
+  headers:
+    RequestId:
+      description: Server-validated or generated request UUID.
+      required: true
+      schema:
+        "$ref": "#/components/schemas/UUID"
+  responses:
+    Error:
+      description: Safe machine-readable error; requestId also appears in X-Request-ID.
+        HTTP status follows the error catalogue. 429 includes Retry-After. No internal
+        exceptions or credentials.
+      headers:
+        X-Request-ID:
+          "$ref": "#/components/headers/RequestId"
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/ErrorEnvelope"
+    RateLimited:
+      description: Rate limited. Retry after the indicated number of seconds.
+      headers:
+        X-Request-ID:
+          "$ref": "#/components/headers/RequestId"
+        Retry-After:
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Seconds before retrying.
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/ErrorEnvelope"
   schemas:
-    Liveness:
-      type: object
-      additionalProperties: false
-      required: [status, demo]
-      properties:
-        status:
-          type: string
-          const: alive
-        demo:
-          type: boolean
-          const: true
-    Readiness:
-      type: object
-      additionalProperties: false
-      required: [status, demo]
-      properties:
-        status:
-          type: string
-          const: persistence-not-configured
-        demo:
-          type: boolean
-          const: true
+    UUID:
+      type: string
+      format: uuid
+    Timestamp:
+      type: string
+      format: date-time
+      pattern: Z$
+    AmountMinor:
+      type: integer
+      format: int64
+      minimum: 1
+      maximum: 1000000
+    TotalMinor:
+      type: integer
+      format: int64
+      minimum: 0
+      maximum: 9007199254740991
+    Currency:
+      type: string
+      const: AUD
+    PaymentStatus:
+      type: string
+      enum:
+      - AWAITING_TAP
+      - APPROVED
+      - DECLINED
+      - EXPIRED
+      - CANCELLED
+    RefundStatus:
+      type: string
+      enum:
+      - NONE
+      - PARTIAL
+      - FULL
+    DecisionCode:
+      type: string
+      enum:
+      - APPROVED
+      - CARD_BLOCKED
+      - INSUFFICIENT_FUNDS
+    RefundReason:
+      type: string
+      enum:
+      - CUSTOMER_REQUEST
+      - DUPLICATE
+      - OTHER
+    ErrorCode:
+      type: string
+      enum:
+      - VALIDATION_ERROR
+      - UNSUPPORTED_CURRENCY
+      - INVALID_CARD_PROOF
+      - UNAUTHENTICATED
+      - INSUFFICIENT_ROLE
+      - RESOURCE_NOT_FOUND
+      - IDEMPOTENCY_KEY_REUSED
+      - INVALID_PAYMENT_STATE
+      - REFUND_EXCEEDS_REMAINING
+      - TERMINAL_DISABLED
+      - PAYMENT_INTENT_EXPIRED
+      - RATE_LIMITED
+      - INTERNAL_ERROR
+      - SERVICE_UNAVAILABLE
+      - PAIRING_CODE_INVALID
+      - PAIRING_CODE_EXPIRED
+      - CARD_ALREADY_ENROLLED
     Status:
       type: object
       additionalProperties: false
-      required: [service, phase, demo]
+      required:
+      - service
+      - phase
+      - demo
       properties:
         service:
           type: string
           const: tapflow-api
         phase:
           type: string
-          const: bootstrap
+          const: foundation
+        demo:
+          type: boolean
+          const: true
+    Health:
+      type: object
+      additionalProperties: false
+      required:
+      - status
+      - demo
+      properties:
+        status:
+          type: string
+          enum:
+          - alive
+          - ready
+        demo:
+          type: boolean
+          const: true
+    ErrorEnvelope:
+      type: object
+      additionalProperties: false
+      required:
+      - error
+      - demo
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required:
+          - code
+          - message
+          - requestId
+          - details
+          properties:
+            code:
+              "$ref": "#/components/schemas/ErrorCode"
+            message:
+              type: string
+              maxLength: 512
+            requestId:
+              "$ref": "#/components/schemas/UUID"
+            details:
+              type: object
+              additionalProperties: true
+        demo:
+          type: boolean
+          const: true
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - email
+      - password
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          minLength: 1
+          maxLength: 128
+          writeOnly: true
+    RegisterRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - email
+      - password
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          minLength: 12
+          maxLength: 128
+          writeOnly: true
+    MobileRefreshRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          minLength: 43
+          maxLength: 128
+          writeOnly: true
+    Membership:
+      type: object
+      additionalProperties: false
+      required:
+      - merchantId
+      - merchantName
+      - role
+      properties:
+        merchantId:
+          "$ref": "#/components/schemas/UUID"
+        merchantName:
+          type: string
+          maxLength: 120
+        role:
+          type: string
+          enum:
+          - OWNER
+          - OPERATOR
+    SessionUser:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - email
+      - accountType
+      - memberships
+      properties:
+        id:
+          "$ref": "#/components/schemas/UUID"
+        email:
+          type: string
+          format: email
+        accountType:
+          type: string
+          enum:
+          - CUSTOMER
+          - MERCHANT
+          - SYSTEM_ADMIN
+        memberships:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Membership"
+    WebSession:
+      type: object
+      additionalProperties: false
+      required:
+      - accessToken
+      - expiresInSeconds
+      - user
+      - demo
+      properties:
+        accessToken:
+          type: string
+          minLength: 1
+        expiresInSeconds:
+          type: integer
+          const: 900
+        user:
+          "$ref": "#/components/schemas/SessionUser"
+        demo:
+          type: boolean
+          const: true
+    MobileSession:
+      type: object
+      additionalProperties: false
+      required:
+      - accessToken
+      - refreshToken
+      - expiresInSeconds
+      - user
+      - demo
+      properties:
+        accessToken:
+          type: string
+          minLength: 1
+        refreshToken:
+          type: string
+          minLength: 43
+          maxLength: 128
+        expiresInSeconds:
+          type: integer
+          const: 900
+        user:
+          "$ref": "#/components/schemas/SessionUser"
+        demo:
+          type: boolean
+          const: true
+    CardEnrollmentRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - label
+      - algorithm
+      - publicKeySpkiBase64
+      properties:
+        label:
+          type: string
+          minLength: 1
+          maxLength: 80
+        algorithm:
+          type: string
+          const: P256_SHA256_ECDSA
+        publicKeySpkiBase64:
+          type: string
+          format: byte
+          minLength: 64
+          maxLength: 1368
+          description: X.509 SPKI DER encoding of a P-256 public key only. The private
+            key never leaves the device.
+    Card:
+      type: object
+      additionalProperties: false
+      required:
+      - cardId
+      - label
+      - status
+      - createdAt
+      - demo
+      properties:
+        cardId:
+          "$ref": "#/components/schemas/UUID"
+        label:
+          type: string
+          maxLength: 80
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - BLOCKED
+        createdAt:
+          "$ref": "#/components/schemas/Timestamp"
+        demo:
+          type: boolean
+          const: true
+    CardList:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - demo
+      properties:
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Card"
+        demo:
+          type: boolean
+          const: true
+    Wallet:
+      type: object
+      additionalProperties: false
+      required:
+      - cardId
+      - balanceMinor
+      - currency
+      - demo
+      properties:
+        cardId:
+          "$ref": "#/components/schemas/UUID"
+        balanceMinor:
+          "$ref": "#/components/schemas/TotalMinor"
+        currency:
+          "$ref": "#/components/schemas/Currency"
+        demo:
+          type: boolean
+          const: true
+    WalletEntry:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - entryType
+      - amountMinor
+      - balanceAfterMinor
+      - merchantName
+      - paymentId
+      - refundId
+      - createdAt
+      properties:
+        id:
+          "$ref": "#/components/schemas/UUID"
+        entryType:
+          type: string
+          enum:
+          - DEMO_FUNDING
+          - DEBIT
+          - CREDIT
+        amountMinor:
+          "$ref": "#/components/schemas/TotalMinor"
+        balanceAfterMinor:
+          "$ref": "#/components/schemas/TotalMinor"
+        merchantName:
+          anyOf:
+          - type: string
+            maxLength: 120
+          - type: 'null'
+        paymentId:
+          anyOf:
+          - "$ref": "#/components/schemas/UUID"
+          - type: 'null'
+        refundId:
+          anyOf:
+          - "$ref": "#/components/schemas/UUID"
+          - type: 'null'
+        createdAt:
+          "$ref": "#/components/schemas/Timestamp"
+    Merchant:
+      type: object
+      additionalProperties: false
+      required:
+      - merchantId
+      - name
+      - slug
+      - status
+      - demo
+      properties:
+        merchantId:
+          "$ref": "#/components/schemas/UUID"
+        name:
+          type: string
+          maxLength: 120
+        slug:
+          type: string
+          maxLength: 80
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - SUSPENDED
+        demo:
+          type: boolean
+          const: true
+    Terminal:
+      type: object
+      additionalProperties: false
+      required:
+      - terminalId
+      - merchantId
+      - label
+      - status
+      - pairedAt
+      - lastSeenAt
+      - demo
+      properties:
+        terminalId:
+          "$ref": "#/components/schemas/UUID"
+        merchantId:
+          "$ref": "#/components/schemas/UUID"
+        label:
+          type: string
+          maxLength: 80
+        status:
+          type: string
+          enum:
+          - ACTIVE
+          - DISABLED
+        pairedAt:
+          "$ref": "#/components/schemas/Timestamp"
+        lastSeenAt:
+          anyOf:
+          - "$ref": "#/components/schemas/Timestamp"
+          - type: 'null'
+        demo:
+          type: boolean
+          const: true
+    PairingCodeRequest:
+      type: object
+      additionalProperties: false
+      required: []
+      properties:
+        labelHint:
+          type: string
+          maxLength: 80
+    PairingCode:
+      type: object
+      additionalProperties: false
+      required:
+      - pairingCode
+      - merchantId
+      - expiresAt
+      - demo
+      properties:
+        pairingCode:
+          type: string
+          minLength: 13
+          maxLength: 13
+          pattern: "^[0-9A-HJKMNP-TV-Z]{13}$"
+          description: 65 bits of entropy, shown once; expires after 10 minutes and
+            is consumed once.
+        merchantId:
+          "$ref": "#/components/schemas/UUID"
+        expiresAt:
+          "$ref": "#/components/schemas/Timestamp"
+        demo:
+          type: boolean
+          const: true
+    PairTerminalRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - pairingCode
+      - installationId
+      - label
+      properties:
+        pairingCode:
+          type: string
+          minLength: 13
+          maxLength: 13
+          pattern: "^[0-9A-HJKMNP-TV-Z]{13}$"
+        installationId:
+          "$ref": "#/components/schemas/UUID"
+        label:
+          type: string
+          minLength: 1
+          maxLength: 80
+    CreateIntentRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - terminalId
+      - amountMinor
+      - currency
+      properties:
+        terminalId:
+          "$ref": "#/components/schemas/UUID"
+        amountMinor:
+          "$ref": "#/components/schemas/AmountMinor"
+        currency:
+          "$ref": "#/components/schemas/Currency"
+        orderReference:
+          anyOf:
+          - type: string
+            maxLength: 120
+          - type: 'null'
+    Challenge:
+      type: object
+      additionalProperties: false
+      required:
+      - protocolVersion
+      - nonceBase64
+      - expiresAtEpochMillis
+      properties:
+        protocolVersion:
+          type: integer
+          const: 1
+        nonceBase64:
+          type: string
+          format: byte
+          minLength: 24
+          maxLength: 24
+          description: Exactly 16 decoded random bytes.
+        expiresAtEpochMillis:
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9007199254740991
+    PaymentIntent:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - merchantId
+      - terminalId
+      - amountMinor
+      - currency
+      - status
+      - expiresAt
+      - createdAt
+      - demo
+      properties:
+        id:
+          "$ref": "#/components/schemas/UUID"
+        merchantId:
+          "$ref": "#/components/schemas/UUID"
+        terminalId:
+          "$ref": "#/components/schemas/UUID"
+        amountMinor:
+          "$ref": "#/components/schemas/AmountMinor"
+        currency:
+          "$ref": "#/components/schemas/Currency"
+        status:
+          "$ref": "#/components/schemas/PaymentStatus"
+        challenge:
+          "$ref": "#/components/schemas/Challenge"
+        expiresAt:
+          "$ref": "#/components/schemas/Timestamp"
+        createdAt:
+          "$ref": "#/components/schemas/Timestamp"
+        orderReference:
+          anyOf:
+          - type: string
+            maxLength: 120
+          - type: 'null'
+        decisionCode:
+          anyOf:
+          - "$ref": "#/components/schemas/DecisionCode"
+          - type: 'null'
+        demo:
+          type: boolean
+          const: true
+    AuthoriseRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - terminalId
+      - cardId
+      - signatureDerBase64
+      properties:
+        terminalId:
+          "$ref": "#/components/schemas/UUID"
+        cardId:
+          "$ref": "#/components/schemas/UUID"
+        signatureDerBase64:
+          type: string
+          format: byte
+          minLength: 8
+          maxLength: 136
+          description: ASN.1 DER ECDSA signature, at most 100 decoded bytes. No client-supplied
+            amount or nonce is trusted.
+    AuthorisationResult:
+      type: object
+      additionalProperties: false
+      required:
+      - paymentId
+      - status
+      - decisionCode
+      - amountMinor
+      - currency
+      - refundedAmountMinor
+      - refundStatus
+      - merchantName
+      - receiptNumber
+      - authorisedAt
+      - demo
+      properties:
+        paymentId:
+          "$ref": "#/components/schemas/UUID"
+        status:
+          type: string
+          enum:
+          - APPROVED
+          - DECLINED
+        decisionCode:
+          "$ref": "#/components/schemas/DecisionCode"
+        amountMinor:
+          "$ref": "#/components/schemas/AmountMinor"
+        currency:
+          "$ref": "#/components/schemas/Currency"
+        refundedAmountMinor:
+          "$ref": "#/components/schemas/TotalMinor"
+        refundStatus:
+          "$ref": "#/components/schemas/RefundStatus"
+        merchantName:
+          type: string
+          maxLength: 120
+        receiptNumber:
+          anyOf:
+          - type: string
+            maxLength: 80
+          - type: 'null'
+        authorisedAt:
+          "$ref": "#/components/schemas/Timestamp"
+        demo:
+          type: boolean
+          const: true
+    Refund:
+      type: object
+      additionalProperties: false
+      required:
+      - refundId
+      - paymentId
+      - amountMinor
+      - reason
+      - createdAt
+      properties:
+        refundId:
+          "$ref": "#/components/schemas/UUID"
+        paymentId:
+          "$ref": "#/components/schemas/UUID"
+        amountMinor:
+          "$ref": "#/components/schemas/AmountMinor"
+        reason:
+          "$ref": "#/components/schemas/RefundReason"
+        createdAt:
+          "$ref": "#/components/schemas/Timestamp"
+    PaymentSummary:
+      type: object
+      additionalProperties: false
+      required:
+      - paymentId
+      - merchantId
+      - terminalId
+      - terminalLabel
+      - amountMinor
+      - refundedAmountMinor
+      - netAmountMinor
+      - refundStatus
+      - status
+      - decisionCode
+      - currency
+      - receiptNumber
+      - createdAt
+      - authorisedAt
+      - demo
+      properties:
+        paymentId:
+          "$ref": "#/components/schemas/UUID"
+        merchantId:
+          "$ref": "#/components/schemas/UUID"
+        terminalId:
+          "$ref": "#/components/schemas/UUID"
+        terminalLabel:
+          type: string
+          maxLength: 80
+        amountMinor:
+          "$ref": "#/components/schemas/AmountMinor"
+        refundedAmountMinor:
+          "$ref": "#/components/schemas/TotalMinor"
+        netAmountMinor:
+          "$ref": "#/components/schemas/TotalMinor"
+        refundStatus:
+          "$ref": "#/components/schemas/RefundStatus"
+        status:
+          "$ref": "#/components/schemas/PaymentStatus"
+        decisionCode:
+          anyOf:
+          - "$ref": "#/components/schemas/DecisionCode"
+          - type: 'null'
+        currency:
+          "$ref": "#/components/schemas/Currency"
+        receiptNumber:
+          anyOf:
+          - type: string
+            maxLength: 80
+          - type: 'null'
+        createdAt:
+          "$ref": "#/components/schemas/Timestamp"
+        authorisedAt:
+          anyOf:
+          - "$ref": "#/components/schemas/Timestamp"
+          - type: 'null'
+        demo:
+          type: boolean
+          const: true
+    RefundRequest:
+      type: object
+      additionalProperties: false
+      required:
+      - amountMinor
+      - reason
+      properties:
+        amountMinor:
+          "$ref": "#/components/schemas/AmountMinor"
+        reason:
+          "$ref": "#/components/schemas/RefundReason"
+    RefundResult:
+      type: object
+      additionalProperties: false
+      required:
+      - refundId
+      - paymentId
+      - amountMinor
+      - currency
+      - refundStatus
+      - totalRefundedMinor
+      - demo
+      properties:
+        refundId:
+          "$ref": "#/components/schemas/UUID"
+        paymentId:
+          "$ref": "#/components/schemas/UUID"
+        amountMinor:
+          "$ref": "#/components/schemas/AmountMinor"
+        currency:
+          "$ref": "#/components/schemas/Currency"
+        refundStatus:
+          "$ref": "#/components/schemas/RefundStatus"
+        totalRefundedMinor:
+          "$ref": "#/components/schemas/TotalMinor"
+        demo:
+          type: boolean
+          const: true
+    DailyBucket:
+      type: object
+      additionalProperties: false
+      required:
+      - date
+      - approvedCount
+      - grossApprovedMinor
+      properties:
+        date:
+          type: string
+          format: date
+        approvedCount:
+          "$ref": "#/components/schemas/TotalMinor"
+        grossApprovedMinor:
+          "$ref": "#/components/schemas/TotalMinor"
+    Dashboard:
+      type: object
+      additionalProperties: false
+      required:
+      - approvedCount
+      - declinedCount
+      - grossApprovedMinor
+      - totalRefundedMinor
+      - netApprovedMinor
+      - currency
+      - from
+      - to
+      - dailyBuckets
+      - recentPayments
+      - demo
+      properties:
+        approvedCount:
+          "$ref": "#/components/schemas/TotalMinor"
+        declinedCount:
+          "$ref": "#/components/schemas/TotalMinor"
+        grossApprovedMinor:
+          "$ref": "#/components/schemas/TotalMinor"
+        totalRefundedMinor:
+          "$ref": "#/components/schemas/TotalMinor"
+        netApprovedMinor:
+          "$ref": "#/components/schemas/TotalMinor"
+        currency:
+          "$ref": "#/components/schemas/Currency"
+        from:
+          "$ref": "#/components/schemas/Timestamp"
+        to:
+          "$ref": "#/components/schemas/Timestamp"
+        dailyBuckets:
+          type: array
+          items:
+            "$ref": "#/components/schemas/DailyBucket"
+        recentPayments:
+          type: array
+          items:
+            "$ref": "#/components/schemas/PaymentSummary"
+        demo:
+          type: boolean
+          const: true
+    AuditEvent:
+      type: object
+      additionalProperties: false
+      required:
+      - id
+      - actorUserId
+      - merchantId
+      - eventType
+      - resourceType
+      - resourceId
+      - details
+      - requestId
+      - createdAt
+      properties:
+        id:
+          "$ref": "#/components/schemas/UUID"
+        actorUserId:
+          anyOf:
+          - "$ref": "#/components/schemas/UUID"
+          - type: 'null'
+        merchantId:
+          anyOf:
+          - "$ref": "#/components/schemas/UUID"
+          - type: 'null'
+        eventType:
+          type: string
+          maxLength: 80
+        resourceType:
+          type: string
+          maxLength: 40
+        resourceId:
+          anyOf:
+          - "$ref": "#/components/schemas/UUID"
+          - type: 'null'
+        details:
+          type: object
+          additionalProperties: true
+          description: Sanitised event metadata. Never tokens, passwords, keys, signatures
+            or APDUs.
+        requestId:
+          "$ref": "#/components/schemas/UUID"
+        createdAt:
+          "$ref": "#/components/schemas/Timestamp"
+    PaymentDetail:
+      type: object
+      additionalProperties: false
+      required:
+      - paymentId
+      - merchantId
+      - terminalId
+      - terminalLabel
+      - amountMinor
+      - refundedAmountMinor
+      - netAmountMinor
+      - refundStatus
+      - status
+      - decisionCode
+      - currency
+      - receiptNumber
+      - createdAt
+      - authorisedAt
+      - demo
+      - merchantName
+      - cardAlias
+      - refunds
+      properties:
+        paymentId:
+          "$ref": "#/components/schemas/UUID"
+        merchantId:
+          "$ref": "#/components/schemas/UUID"
+        terminalId:
+          "$ref": "#/components/schemas/UUID"
+        terminalLabel:
+          type: string
+          maxLength: 80
+        amountMinor:
+          "$ref": "#/components/schemas/AmountMinor"
+        refundedAmountMinor:
+          "$ref": "#/components/schemas/TotalMinor"
+        netAmountMinor:
+          "$ref": "#/components/schemas/TotalMinor"
+        refundStatus:
+          "$ref": "#/components/schemas/RefundStatus"
+        status:
+          "$ref": "#/components/schemas/PaymentStatus"
+        decisionCode:
+          anyOf:
+          - "$ref": "#/components/schemas/DecisionCode"
+          - type: 'null'
+        currency:
+          "$ref": "#/components/schemas/Currency"
+        receiptNumber:
+          anyOf:
+          - type: string
+            maxLength: 80
+          - type: 'null'
+        createdAt:
+          "$ref": "#/components/schemas/Timestamp"
+        authorisedAt:
+          anyOf:
+          - "$ref": "#/components/schemas/Timestamp"
+          - type: 'null'
+        demo:
+          type: boolean
+          const: true
+        merchantName:
+          type: string
+          maxLength: 120
+        cardAlias:
+          anyOf:
+          - type: string
+            maxLength: 80
+          - type: 'null'
+        refunds:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Refund"
+    ActivityPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - nextCursor
+      - demo
+      properties:
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/WalletEntry"
+        nextCursor:
+          anyOf:
+          - type: string
+            maxLength: 512
+          - type: 'null'
+        demo:
+          type: boolean
+          const: true
+    TerminalPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - nextCursor
+      - demo
+      properties:
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Terminal"
+        nextCursor:
+          anyOf:
+          - type: string
+            maxLength: 512
+          - type: 'null'
+        demo:
+          type: boolean
+          const: true
+    PaymentPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - nextCursor
+      - demo
+      properties:
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/PaymentSummary"
+        nextCursor:
+          anyOf:
+          - type: string
+            maxLength: 512
+          - type: 'null'
+        demo:
+          type: boolean
+          const: true
+    AuditPage:
+      type: object
+      additionalProperties: false
+      required:
+      - items
+      - nextCursor
+      - demo
+      properties:
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/AuditEvent"
+        nextCursor:
+          anyOf:
+          - type: string
+            maxLength: 512
+          - type: 'null'
         demo:
           type: boolean
           const: true

@@ -12,7 +12,7 @@ it('shows the demo boundary and live API status', async () => {
       new Response(
         JSON.stringify({
           service: 'tapflow-api',
-          phase: 'bootstrap',
+          phase: 'foundation',
           demo: true,
         }),
       ),

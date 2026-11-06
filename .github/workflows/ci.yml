@@ -25,7 +25,7 @@ jobs:
       - run: ./gradlew help :packages:protocol-kotlin:test :services:payment-api:test
       - name: Validate development Compose
         env:
-          DATABASE_PASSWORD: disposable-ci-config-check
+          LOCAL_DATABASE_PASSWORD: disposable-ci-config-check
         run: docker compose -f infra/compose/dev.yml config --quiet
   web:
     runs-on: ubuntu-latest
@@ -43,6 +43,6 @@ jobs:
           cache: pnpm
           cache-dependency-path: apps/web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      - run: pnpm lint && pnpm typecheck && pnpm test && pnpm build
+      - run: pnpm api:lint && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm format:check
       - name: Check generated API types
         run: pnpm api:generate && git diff --exit-code -- src/api/generated/schema.d.ts

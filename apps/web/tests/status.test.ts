@@ -9,7 +9,7 @@ describe('API status', () => {
         new Response(
           JSON.stringify({
             service: 'tapflow-api',
-            phase: 'bootstrap',
+            phase: 'foundation',
             demo: true,
           }),
         ),
@@ -17,7 +17,7 @@ describe('API status', () => {
     )
     await expect(fetchStatus()).resolves.toEqual({
       service: 'tapflow-api',
-      phase: 'bootstrap',
+      phase: 'foundation',
       demo: true,
     })
   })
@@ -37,7 +37,7 @@ describe('API status', () => {
         new Response(
           JSON.stringify({
             service: 'tapflow-api',
-            phase: 'bootstrap',
+            phase: 'foundation',
             demo: false,
           }),
         ),

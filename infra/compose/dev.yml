@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: tapflow
       POSTGRES_USER: tapflow
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD in your local .env}
+      POSTGRES_PASSWORD: ${LOCAL_DATABASE_PASSWORD:?Set LOCAL_DATABASE_PASSWORD in your local .env}
     ports:
       - '127.0.0.1:5432:5432'
     volumes:

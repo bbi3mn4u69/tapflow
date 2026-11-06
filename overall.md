@@ -1722,10 +1722,12 @@ The agent should commit small coherent changes with tests and README updates, th
 
 ### Phase 1 — Database, API shell, OpenAPI
 
-- [ ] Flyway schema and indexes as §5; seed script with one test merchant + owner + operator + customer (no hard-coded publicly disclosed production password).
-- [ ] Ktor configuration, startup migrations, DB pool, structured error envelope, request IDs, health endpoints.
-- [ ] OpenAPI file with all v1 DTOs and endpoints; generate TS types.
-- [ ] Add Testcontainers migration smoke test and DB constraint tests.
+Runtime database override (2026-11-07): use the user-provided Railway PostgreSQL deployment through private environment configuration; retain local Docker PostgreSQL as an optional fallback. See `docs/adr/ADR-008-railway-and-database-foundation.md`.
+
+- [x] Flyway schema and indexes as §5; seed script with one test merchant + owner + operator + customer (no hard-coded publicly disclosed production password).
+- [x] Ktor configuration, startup migrations, DB pool, structured error envelope, request IDs, health endpoints.
+- [x] OpenAPI file with all v1 DTOs and endpoints; generate TS types.
+- [x] Add Testcontainers migration smoke test and DB constraint tests.
 
 **Gate:** Fresh PostgreSQL starts, migrations apply, readiness passes, OpenAPI validates.
 

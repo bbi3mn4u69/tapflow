@@ -6,14 +6,16 @@ Two Android apps exchange proprietary APDUs; a Kotlin/Ktor API will verify devic
 
 ## Current milestone
 
-Phase 0: repository bootstrap. The merchant workspace reads the running API's implementation status. The Android modules are clearly labelled starter shells. Enrollment, authentication, NFC communication, wallet mutations and refunds are **not implemented yet**. See [progress](docs/progress.md) and the governing [specification](overall.md).
+Phase 1: database and API foundation. Startup runs Flyway migrations, readiness checks the database and schema, and API failures have safe request-ID envelopes. The complete v1 OpenAPI contract generates the portal's TypeScript types. Runtime development uses the configured Railway database; automated tests use isolated PostgreSQL Testcontainers. Enrollment, authentication, NFC communication, wallet mutations and refunds are **not implemented yet**. See [progress](docs/progress.md) and the governing [specification](overall.md).
 
 ## Run locally
 
 Requirements: JDK 21, a current Android Studio supporting AGP 9.5, Android SDK 37.2 + Build Tools 36.0.0, Node 24 LTS, pnpm 9.12.3, Docker Compose v2.
 
 ```sh
-# Run the API (no database needed for the bootstrap endpoints).
+# Configure database credentials in the ignored .env (preserve an existing file).
+test -f .env || cp .env.example .env
+# Run the API; migrations finish before it accepts requests.
 ./gradlew :services:payment-api:run
 
 # In another terminal, run the merchant workspace.
@@ -22,7 +24,9 @@ corepack pnpm install --frozen-lockfile
 corepack pnpm dev
 ```
 
-Open [localhost:5173](http://localhost:5173). `/health/live` confirms the process is running; `/health/ready` intentionally returns 503 until database integration is implemented. The UI displays an error with a retry action if the API is unavailable.
+Open [localhost:5173](http://localhost:5173). `/health/live` confirms the process is running; `/health/ready` returns 200 only when PostgreSQL is reachable and migrations validate, otherwise 503. [OpenAPI](http://localhost:8080/api/v1/openapi.yaml) describes the full planned v1; `x-implementation-phase` identifies which milestone implements each operation. Only system endpoints run in phase 1.
+
+Set three distinct `SEED_*_PASSWORD` values locally, then run `./infra/scripts/seed-demo.sh` to create `owner@example.test`, `operator@example.test`, `customer@example.test` and one demo merchant. Seed reruns preserve existing passwords and create no device keys or funded wallets. Passwords never belong in Git or command-line arguments.
 
 Open this repository's **root** in Android Studio, select JDK 21 for Gradle, sync, then run `apps.android-card` or `apps.android-pos` on an emulator. Both apps can be installed on one AVD for UI work. Real NFC acceptance requires two compatible physical Android phones.
 
@@ -42,6 +46,7 @@ corepack pnpm typecheck
 corepack pnpm test
 corepack pnpm build
 corepack pnpm format:check
+corepack pnpm api:lint
 corepack pnpm api:generate
 ```
 
@@ -58,6 +63,7 @@ packages/protocol-kotlin/ Pure Kotlin/JVM module; APDU contract follows in phase
 services/payment-api/    Kotlin/Ktor application and HTTP tests
 contracts/               OpenAPI source; web types are generated from it
 infra/compose/           Pinned PostgreSQL development service
+infra/scripts/           Safe demo seed entry point
 .github/workflows/       JVM/web and Android CI
 docs/                    Setup, decisions, design, testing and progress
 ```
