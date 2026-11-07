@@ -6,7 +6,9 @@ DEMO / NO REAL MONEY. No bank-card data or actual funds are processed.
 
 Run `corepack pnpm api:lint` from `apps/web` to validate it, then `corepack pnpm api:generate` to regenerate `src/api/generated/schema.d.ts`. Commit both the contract and generated types. CI rejects validation failures and generated drift.
 
-Phase 1 implements health, implementation status and the contract endpoint. Domain operations are planned, with `x-implementation-phase` showing their implementation milestone. A published contract does not imply that login, enrollment, NFC, payments or refunds currently work.
+Phase 2 implements all eight authentication/identity operations (registration remains explicitly flag-gated), merchant metadata, health, status and the contract endpoint. Other domain operations are planned, with `x-implementation-phase` showing their milestone. Enrollment, NFC, payments, pairing and refunds do not currently work.
+
+Web cookie endpoints require `X-TapFlow-CSRF: 1` plus an allowed Origin/Referer; refresh tokens never appear in browser response JSON. Mobile endpoints return opaque refresh tokens for Keystore-backed storage. Refresh replay revokes the token family; logout revokes a single family. Access JWTs expire after 900 seconds; refresh rotation preserves the original absolute expiry. All API responses carry `Cache-Control: no-store`. Bodies above 16 KiB return 413.
 
 ## Response behavior
 
@@ -15,6 +17,6 @@ Phase 1 implements health, implementation status and the contract endpoint. Doma
 - Authorisation: a valid business decision, including insufficient funds or blocked card declines, is HTTP 200. Invalid or malformed proof is a client error, not a business decline.
 - Idempotency: stable UUID v4 keys for intent creation, authorisation, refunds, pairing-code creation, terminal pairing and enrollment. Exact retries replay the original persisted status/body; changed payload under the same key conflicts.
 - Reporting: group approved payments by authorisation time in the selected half-open UTC interval, then subtract all refunds associated with those payments, including later refunds. Intervals are bounded to 366 days.
-- Owner-only actions are enforced on the backend in later phases; cross-tenant resources return 404 instead of exposing their existence.
+- Current merchant metadata and the reusable owner guard check membership in SQL. Later pairing/refund routes must use that guard inside their transaction; cross-tenant resources return 404 instead of exposing their existence.
 
 The OpenAPI server URL is relative so the same contract works behind the specified same-origin reverse proxy and in local API development.

@@ -14,7 +14,19 @@ android {
         versionName = "0.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-    buildFeatures { compose = true }
+    buildFeatures { compose = true; buildConfig = true }
+    buildTypes {
+        getByName("debug") {
+            val url = providers.gradleProperty("tapflowApiBaseUrl").orElse("http://10.0.2.2:8080/api/v1").get()
+            require(url.matches(Regex("https?://[A-Za-z0-9.:-]+/api/v1"))) { "Invalid tapflowApiBaseUrl" }
+            buildConfigField("String", "API_BASE_URL", "\"$url\"")
+        }
+        getByName("release") {
+            val url = providers.gradleProperty("tapflowReleaseApiBaseUrl").orElse("https://configure-tapflow.invalid/api/v1").get()
+            require(url.matches(Regex("https://[A-Za-z0-9.:-]+/api/v1"))) { "Release API requires HTTPS" }
+            buildConfigField("String", "API_BASE_URL", "\"$url\"")
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -22,6 +34,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":packages:android-auth"))
     implementation(project(":packages:protocol-kotlin"))
     implementation(platform(libs.compose.bom))
     implementation(libs.activity.compose)
@@ -33,4 +46,5 @@ dependencies {
     androidTestImplementation(libs.compose.ui.test)
     androidTestImplementation(libs.android.test.junit)
     androidTestImplementation(libs.android.test.runner)
+    androidTestImplementation(libs.coroutines.android)
 }

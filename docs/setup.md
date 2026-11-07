@@ -1,6 +1,6 @@
 # Development setup
 
-DEMO / NO REAL MONEY. Phase 1 supplies the database and API foundation; authentication and payments follow later.
+DEMO / NO REAL MONEY. Phase 2 supplies sign-in, refresh sessions and merchant access. NFC, card enrollment and payments follow later.
 
 ## Toolchain
 
@@ -71,10 +71,20 @@ Vite proxies `/api` to the API on port 8080. `API_HOST`/`API_PORT` configure the
 
 - `GET /health/live`: 200 while the process is running, independent of database health.
 - `GET /health/ready`: 200 only when the database responds and its migration history matches the versions/checksums validated at startup; otherwise 503.
-- `GET /api/v1/status`: implementation phase `foundation`.
+- `GET /api/v1/status`: implementation phase `authentication`.
+- Web and mobile login/refresh/logout, `GET /api/v1/me`, and merchant metadata `GET /api/v1/merchants/{merchantId}`.
+- Optional customer registration only when its explicit environment flag is enabled.
 - `GET /api/v1/openapi.yaml`: complete planned v1 contract, with implementation phase annotations.
 
 `X-Request-ID` is validated as a UUID or replaced, returned in the response and attached to safe JSON error envelopes and structured logs. Logs omit raw URLs, request bodies and credentials. The remaining API operations return the normal 404 envelope until their implementation phase.
+
+## Authentication configuration
+
+The API now also requires `JWT_SIGNING_SECRET`, `JWT_ISSUER`, `JWT_AUDIENCE`, `APP_PUBLIC_URL` and `ALLOWED_ORIGINS`. Generate an independent random JWT secret (at least 32 bytes) directly into private configuration, without printing it or putting it in command arguments. Preserve an existing private key. Access tokens last exactly 900 seconds; refresh families expire after `REFRESH_TOKEN_TTL_DAYS` (default 14, maximum 30).
+
+For local web development, use `APP_PUBLIC_URL=http://localhost:5173`, `ALLOWED_ORIGINS=http://localhost:5173`, and open [localhost:5173](http://localhost:5173/login). If you also use `127.0.0.1`, explicitly add that exact origin to the comma-separated allowlist. The public URL must itself be an allowed origin. Do not add a wildcard.
+
+The web app sends `X-TapFlow-CSRF: 1`; cookie mutations also require allowed Origin/Referer. Direct HTTP tools must supply these headers for web endpoints. Android uses the separate mobile endpoints. Cookies are Secure on HTTPS; only loopback HTTP development relaxes that flag. Browser access tokens stay in memory and reload restores via the HttpOnly cookie. See [security behavior](security.md).
 
 ## Seed synthetic demo accounts
 
@@ -86,7 +96,7 @@ Set `SEED_OWNER_PASSWORD`, `SEED_OPERATOR_PASSWORD` and `SEED_CUSTOMER_PASSWORD`
 
 This creates one `TapFlow Demo Store`, owner/operator merchant accounts, one customer account, memberships and a seed audit event. The synthetic emails are `owner@example.test`, `operator@example.test` and `customer@example.test`. Passwords are Argon2id hashes; plaintext passwords are never printed. Reruns preserve existing passwords and reject conflicting account roles. Seeding is restricted to development/test mode.
 
-Seeding creates no virtual card, private key, wallet or funds. Card enrollment on the Android device will create the demo wallet in phase 3. No login endpoint is implemented in phase 1.
+Seeding creates no virtual card, private key, wallet or funds. Card enrollment on the Android device will create the demo wallet in phase 3. Sign in with the corresponding private `SEED_*_PASSWORD` from your local configuration. Seed passwords are not changed by a rerun.
 
 ## Optional local PostgreSQL fallback
 
@@ -103,6 +113,18 @@ Automated tests do not use either runtime database. Testcontainers starts fresh 
 
 ## Android
 
-Open the repository root in Android Studio, sync, then run either app module. Both APKs can coexist on one emulator. The screens identify the starter build and do not claim enrollment, pairing or an NFC tap.
+Open the repository root in Android Studio, sync, then run either app module. Both APKs can coexist on one emulator. Card requires a CUSTOMER account; POS requires a MERCHANT account. The apps restore encrypted refresh sessions and provide server-side logout. Card enrollment, terminal pairing and NFC are not enabled yet.
 
-When mobile API calls are added, emulators reach the host at `http://10.0.2.2:8080/api/v1`; physical phones need a reachable LAN/HTTPS endpoint. Release apps disallow cleartext traffic. Physical NFC acceptance still requires two compatible phones.
+Debug defaults to `http://10.0.2.2:8080/api/v1`, the emulator's route to the host API. HTTP is allowed only for that emulator host in the debug network-security file. To use a reachable HTTPS endpoint, supply `-PtapflowApiBaseUrl=https://YOUR_HOST/api/v1` to Gradle (or its Gradle configuration in Android Studio).
+
+Release uses `-PtapflowReleaseApiBaseUrl=https://YOUR_HOST/api/v1` and rejects HTTP; the default reserved `.invalid` hostname deliberately requires deployment configuration. APK signing/distribution remains later work. Physical phones need the same reachable HTTPS backend and still require two compatible NFC phones for eventual tap acceptance.
+
+To verify authentication with one running emulator, Python 3, JDK 21 and Docker:
+
+```sh
+python3 infra/scripts/test-auth-emulator.py
+```
+
+This builds an API distribution, starts a new PostgreSQL container and loopback API on random ports, seeds instrumentation-only accounts, then runs both live Android sign-in suites. It does not load `.env` or use Railway. It cleans up its own API/container and anonymous test volume. Use a dedicated AVD: the command installs both debug apps and exercises their auth storage. The test APKs target a temporary port; run the normal Android Studio/Gradle debug build again to restore the normal API URL.
+
+For UI/Keystore checks alone against the default debug URL, use the connected test commands in the README. Live tests skip unless `tapflowLiveAuth=true` is set by the disposable fixture script. Never set that flag against a runtime database with the fixture passwords.

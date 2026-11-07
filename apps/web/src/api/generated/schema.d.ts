@@ -73,7 +73,7 @@ export interface paths {
         };
         /**
          * Read the v1 API contract
-         * @description Contract for the complete planned v1. Only phase 1 system endpoints are implemented at this milestone. DEMO / NO REAL MONEY.
+         * @description Contract for the complete planned v1. Phase 1 system endpoints and phase 2 authentication, identity and merchant metadata are implemented. DEMO / NO REAL MONEY.
          */
         get: operations["getOpenApi"];
         put?: never;
@@ -95,7 +95,7 @@ export interface paths {
         put?: never;
         /**
          * Sign in on web
-         * @description Sign in on web. DEMO / NO REAL MONEY.
+         * @description Sign in on web. DEMO / NO REAL MONEY. Requires an allowed exact Origin (or Referer origin) and X-TapFlow-CSRF: 1. Secure cookie is relaxed only for loopback HTTP development; never for HTTPS or deployed environments.
          */
         post: operations["webLogin"];
         delete?: never;
@@ -115,7 +115,7 @@ export interface paths {
         put?: never;
         /**
          * Rotate web refresh session
-         * @description Atomically rotate the refresh token. Reuse revokes the token family. Web cookie mutations require allowed Origin/Referer and CSRF protection. DEMO / NO REAL MONEY.
+         * @description Atomically rotate the refresh token. Reuse revokes the token family. Web cookie mutations require allowed Origin/Referer and CSRF protection. DEMO / NO REAL MONEY. Requires an allowed exact Origin (or Referer origin) and X-TapFlow-CSRF: 1. Secure cookie is relaxed only for loopback HTTP development; never for HTTPS or deployed environments.
          */
         post: operations["webRefresh"];
         delete?: never;
@@ -135,7 +135,7 @@ export interface paths {
         put?: never;
         /**
          * Revoke web session
-         * @description Revoke web session. DEMO / NO REAL MONEY.
+         * @description Revoke web session. DEMO / NO REAL MONEY. Requires an allowed exact Origin (or Referer origin) and X-TapFlow-CSRF: 1. Secure cookie is relaxed only for loopback HTTP development; never for HTTPS or deployed environments.
          */
         post: operations["webLogout"];
         delete?: never;
@@ -651,12 +651,12 @@ export interface components {
         /** @enum {string} */
         RefundReason: "CUSTOMER_REQUEST" | "DUPLICATE" | "OTHER";
         /** @enum {string} */
-        ErrorCode: "VALIDATION_ERROR" | "UNSUPPORTED_CURRENCY" | "INVALID_CARD_PROOF" | "UNAUTHENTICATED" | "INSUFFICIENT_ROLE" | "RESOURCE_NOT_FOUND" | "IDEMPOTENCY_KEY_REUSED" | "INVALID_PAYMENT_STATE" | "REFUND_EXCEEDS_REMAINING" | "TERMINAL_DISABLED" | "PAYMENT_INTENT_EXPIRED" | "RATE_LIMITED" | "INTERNAL_ERROR" | "SERVICE_UNAVAILABLE" | "PAIRING_CODE_INVALID" | "PAIRING_CODE_EXPIRED" | "CARD_ALREADY_ENROLLED";
+        ErrorCode: "VALIDATION_ERROR" | "UNSUPPORTED_CURRENCY" | "INVALID_CARD_PROOF" | "UNAUTHENTICATED" | "INSUFFICIENT_ROLE" | "RESOURCE_NOT_FOUND" | "IDEMPOTENCY_KEY_REUSED" | "INVALID_PAYMENT_STATE" | "REFUND_EXCEEDS_REMAINING" | "TERMINAL_DISABLED" | "PAYMENT_INTENT_EXPIRED" | "RATE_LIMITED" | "INTERNAL_ERROR" | "SERVICE_UNAVAILABLE" | "PAIRING_CODE_INVALID" | "PAIRING_CODE_EXPIRED" | "CARD_ALREADY_ENROLLED" | "CSRF_REJECTED" | "ACCOUNT_ALREADY_EXISTS";
         Status: {
             /** @constant */
             service: "tapflow-api";
             /** @constant */
-            phase: "foundation";
+            phase: "authentication";
             /** @constant */
             demo: true;
         };
@@ -1011,6 +1011,8 @@ export interface components {
         From: components["schemas"]["Timestamp"];
         /** @description Exclusive UTC end; interval at most 366 days. */
         To: components["schemas"]["Timestamp"];
+        /** @description Browser cookie mutation guard. An allowed Origin or Referer origin is also required. */
+        BrowserCsrf: "1";
     };
     requestBodies: never;
     headers: {
@@ -1138,9 +1140,11 @@ export interface operations {
     webLogin: {
         parameters: {
             query?: never;
-            header?: {
+            header: {
                 /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
                 "X-Request-ID"?: components["parameters"]["RequestId"];
+                /** @description Browser cookie mutation guard. An allowed Origin or Referer origin is also required. */
+                "X-TapFlow-CSRF": components["parameters"]["BrowserCsrf"];
             };
             path?: never;
             cookie?: never;
@@ -1169,6 +1173,7 @@ export interface operations {
             404: components["responses"]["Error"];
             409: components["responses"]["Error"];
             410: components["responses"]["Error"];
+            413: components["responses"]["Error"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["Error"];
             503: components["responses"]["Error"];
@@ -1177,9 +1182,11 @@ export interface operations {
     webRefresh: {
         parameters: {
             query?: never;
-            header?: {
+            header: {
                 /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
                 "X-Request-ID"?: components["parameters"]["RequestId"];
+                /** @description Browser cookie mutation guard. An allowed Origin or Referer origin is also required. */
+                "X-TapFlow-CSRF": components["parameters"]["BrowserCsrf"];
             };
             path?: never;
             cookie?: never;
@@ -1212,9 +1219,11 @@ export interface operations {
     webLogout: {
         parameters: {
             query?: never;
-            header?: {
+            header: {
                 /** @description Canonical UUID; malformed values are replaced by a server-generated ID. */
                 "X-Request-ID"?: components["parameters"]["RequestId"];
+                /** @description Browser cookie mutation guard. An allowed Origin or Referer origin is also required. */
+                "X-TapFlow-CSRF": components["parameters"]["BrowserCsrf"];
             };
             path?: never;
             cookie?: never;
@@ -1274,6 +1283,7 @@ export interface operations {
             404: components["responses"]["Error"];
             409: components["responses"]["Error"];
             410: components["responses"]["Error"];
+            413: components["responses"]["Error"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["Error"];
             503: components["responses"]["Error"];
@@ -1311,6 +1321,7 @@ export interface operations {
             404: components["responses"]["Error"];
             409: components["responses"]["Error"];
             410: components["responses"]["Error"];
+            413: components["responses"]["Error"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["Error"];
             503: components["responses"]["Error"];
@@ -1346,6 +1357,7 @@ export interface operations {
             404: components["responses"]["Error"];
             409: components["responses"]["Error"];
             410: components["responses"]["Error"];
+            413: components["responses"]["Error"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["Error"];
             503: components["responses"]["Error"];
@@ -1414,6 +1426,7 @@ export interface operations {
             404: components["responses"]["Error"];
             409: components["responses"]["Error"];
             410: components["responses"]["Error"];
+            413: components["responses"]["Error"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["Error"];
             503: components["responses"]["Error"];
@@ -1484,6 +1497,7 @@ export interface operations {
             404: components["responses"]["Error"];
             409: components["responses"]["Error"];
             410: components["responses"]["Error"];
+            413: components["responses"]["Error"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["Error"];
             503: components["responses"]["Error"];
@@ -1734,6 +1748,7 @@ export interface operations {
             404: components["responses"]["Error"];
             409: components["responses"]["Error"];
             410: components["responses"]["Error"];
+            413: components["responses"]["Error"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["Error"];
             503: components["responses"]["Error"];
@@ -1846,6 +1861,7 @@ export interface operations {
             404: components["responses"]["Error"];
             409: components["responses"]["Error"];
             410: components["responses"]["Error"];
+            413: components["responses"]["Error"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["Error"];
             503: components["responses"]["Error"];
@@ -1887,6 +1903,7 @@ export interface operations {
             404: components["responses"]["Error"];
             409: components["responses"]["Error"];
             410: components["responses"]["Error"];
+            413: components["responses"]["Error"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["Error"];
             503: components["responses"]["Error"];
@@ -1929,6 +1946,7 @@ export interface operations {
             404: components["responses"]["Error"];
             409: components["responses"]["Error"];
             410: components["responses"]["Error"];
+            413: components["responses"]["Error"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["Error"];
             503: components["responses"]["Error"];
@@ -2117,6 +2135,7 @@ export interface operations {
             404: components["responses"]["Error"];
             409: components["responses"]["Error"];
             410: components["responses"]["Error"];
+            413: components["responses"]["Error"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["Error"];
             503: components["responses"]["Error"];

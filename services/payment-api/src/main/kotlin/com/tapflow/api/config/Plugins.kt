@@ -3,12 +3,15 @@ package com.tapflow.api.config
 import com.tapflow.api.common.ApiError
 import com.tapflow.api.common.DomainError
 import com.tapflow.api.common.ErrorEnvelope
+import com.tapflow.api.auth.Limited
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.application.log
 import io.ktor.server.plugins.BadRequestException
+import io.ktor.server.plugins.PayloadTooLargeException
+import io.ktor.server.plugins.bodylimit.RequestBodyLimit
 import io.ktor.server.plugins.callid.CallId
 import io.ktor.server.plugins.callid.callId
 import io.ktor.server.plugins.callid.callIdMdc
@@ -37,7 +40,15 @@ fun Application.configurePlugins(nextRequestId: () -> UUID) {
         callIdMdc("requestId")
         format { call -> "http.request method=${call.request.httpMethod.value} status=${call.response.status()?.value ?: 0}" }
     }
+    install(RequestBodyLimit) { bodyLimit { 16_384L } }
     install(StatusPages) {
+        exception<Limited> { call, error ->
+            call.response.headers.append("Retry-After", error.retryAfter.toString())
+            call.respond(HttpStatusCode.TooManyRequests, ErrorEnvelope(ApiError("RATE_LIMITED", "Too many requests. Try again later.", checkNotNull(call.callId))))
+        }
+        exception<PayloadTooLargeException> { call, _ ->
+            call.respond(HttpStatusCode.PayloadTooLarge, ErrorEnvelope(ApiError("VALIDATION_ERROR", "The request is too large.", checkNotNull(call.callId))))
+        }
         exception<DomainError> { call, error ->
             call.respond(error.status, ErrorEnvelope(ApiError(error.code, error.message, checkNotNull(call.callId))))
         }

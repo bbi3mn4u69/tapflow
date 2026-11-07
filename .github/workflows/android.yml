@@ -22,7 +22,7 @@ jobs:
           packages: platform-tools
       - run: sdkmanager 'platforms;android-37.2' 'build-tools;36.0.0'
       - uses: gradle/actions/setup-gradle@v4
-      - run: ./gradlew :apps:android-card:assembleDebug :apps:android-pos:assembleDebug :apps:android-card:testDebugUnitTest :apps:android-pos:testDebugUnitTest :apps:android-card:lintDebug :apps:android-pos:lintDebug
+      - run: ./gradlew :apps:android-card:assembleDebug :apps:android-pos:assembleDebug :apps:android-card:testDebugUnitTest :apps:android-pos:testDebugUnitTest :apps:android-card:lintDebug :apps:android-pos:lintDebug :packages:android-auth:lintDebug
       - uses: actions/upload-artifact@v4
         with:
           name: tapflow-debug-apks

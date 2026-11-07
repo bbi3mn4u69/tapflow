@@ -2,13 +2,13 @@
 openapi: 3.1.0
 info:
   title: TapFlow Demo API
-  version: 0.2.0
+  version: 0.3.0
   description: DEMO / NO REAL MONEY. Proprietary NFC simulator; no bank-card credentials
-    or real transfers. This is the complete v1 contract. At phase 1 only health, status
-    and contract endpoints run; other operations are implemented in the indicated
-    x-implementation-phase. All merchant resources enforce membership server-side;
-    cross-tenant resources return 404. Money is integer AUD cents; timestamps are
-    UTC.
+    or real transfers. This is the complete v1 contract. At phase 2 authentication,
+    identity, merchant metadata and system endpoints run; later operations are implemented
+    in the indicated x-implementation-phase. All merchant resources enforce membership
+    server-side; cross-tenant resources return 404. Money is integer AUD cents; timestamps
+    are UTC.
   contact:
     name: TapFlow project
     url: https://github.com/bbi3mn4u69/tapflow
@@ -142,8 +142,9 @@ paths:
     get:
       operationId: getOpenApi
       summary: Read the v1 API contract
-      description: Contract for the complete planned v1. Only phase 1 system endpoints
-        are implemented at this milestone. DEMO / NO REAL MONEY.
+      description: Contract for the complete planned v1. Phase 1 system endpoints
+        and phase 2 authentication, identity and merchant metadata are implemented.
+        DEMO / NO REAL MONEY.
       tags:
       - System
       security: []
@@ -162,13 +163,16 @@ paths:
     post:
       operationId: webLogin
       summary: Sign in on web
-      description: Sign in on web. DEMO / NO REAL MONEY.
+      description: 'Sign in on web. DEMO / NO REAL MONEY. Requires an allowed exact
+        Origin (or Referer origin) and X-TapFlow-CSRF: 1. Secure cookie is relaxed
+        only for loopback HTTP development; never for HTTPS or deployed environments.'
       tags:
       - Authentication
       security: []
       x-implementation-phase: 2
       parameters:
       - "$ref": "#/components/parameters/RequestId"
+      - "$ref": "#/components/parameters/BrowserCsrf"
       responses:
         '200':
           description: Successful demo response. DEMO / NO REAL MONEY.
@@ -202,6 +206,8 @@ paths:
           "$ref": "#/components/responses/Error"
         '503':
           "$ref": "#/components/responses/Error"
+        '413':
+          "$ref": "#/components/responses/Error"
       requestBody:
         required: true
         content:
@@ -212,9 +218,11 @@ paths:
     post:
       operationId: webRefresh
       summary: Rotate web refresh session
-      description: Atomically rotate the refresh token. Reuse revokes the token family.
+      description: 'Atomically rotate the refresh token. Reuse revokes the token family.
         Web cookie mutations require allowed Origin/Referer and CSRF protection. DEMO
-        / NO REAL MONEY.
+        / NO REAL MONEY. Requires an allowed exact Origin (or Referer origin) and
+        X-TapFlow-CSRF: 1. Secure cookie is relaxed only for loopback HTTP development;
+        never for HTTPS or deployed environments.'
       tags:
       - Authentication
       security:
@@ -222,6 +230,7 @@ paths:
       x-implementation-phase: 2
       parameters:
       - "$ref": "#/components/parameters/RequestId"
+      - "$ref": "#/components/parameters/BrowserCsrf"
       responses:
         '200':
           description: Successful demo response. DEMO / NO REAL MONEY.
@@ -259,13 +268,16 @@ paths:
     post:
       operationId: webLogout
       summary: Revoke web session
-      description: Revoke web session. DEMO / NO REAL MONEY.
+      description: 'Revoke web session. DEMO / NO REAL MONEY. Requires an allowed
+        exact Origin (or Referer origin) and X-TapFlow-CSRF: 1. Secure cookie is relaxed
+        only for loopback HTTP development; never for HTTPS or deployed environments.'
       tags:
       - Authentication
       security: []
       x-implementation-phase: 2
       parameters:
       - "$ref": "#/components/parameters/RequestId"
+      - "$ref": "#/components/parameters/BrowserCsrf"
       responses:
         '204':
           description: Operation complete. DEMO / NO REAL MONEY.
@@ -334,6 +346,8 @@ paths:
           "$ref": "#/components/responses/Error"
         '503':
           "$ref": "#/components/responses/Error"
+        '413':
+          "$ref": "#/components/responses/Error"
       requestBody:
         required: true
         content:
@@ -381,6 +395,8 @@ paths:
           "$ref": "#/components/responses/Error"
         '503':
           "$ref": "#/components/responses/Error"
+        '413':
+          "$ref": "#/components/responses/Error"
       requestBody:
         required: true
         content:
@@ -422,6 +438,8 @@ paths:
         '500':
           "$ref": "#/components/responses/Error"
         '503':
+          "$ref": "#/components/responses/Error"
+        '413':
           "$ref": "#/components/responses/Error"
       requestBody:
         required: true
@@ -506,6 +524,8 @@ paths:
           "$ref": "#/components/responses/Error"
         '503':
           "$ref": "#/components/responses/Error"
+        '413':
+          "$ref": "#/components/responses/Error"
       requestBody:
         required: true
         content:
@@ -552,6 +572,8 @@ paths:
         '500':
           "$ref": "#/components/responses/Error"
         '503':
+          "$ref": "#/components/responses/Error"
+        '413':
           "$ref": "#/components/responses/Error"
       requestBody:
         required: true
@@ -896,6 +918,8 @@ paths:
           "$ref": "#/components/responses/Error"
         '503':
           "$ref": "#/components/responses/Error"
+        '413':
+          "$ref": "#/components/responses/Error"
       requestBody:
         required: true
         content:
@@ -1038,6 +1062,8 @@ paths:
           "$ref": "#/components/responses/Error"
         '503':
           "$ref": "#/components/responses/Error"
+        '413':
+          "$ref": "#/components/responses/Error"
       requestBody:
         required: true
         content:
@@ -1089,6 +1115,8 @@ paths:
         '500':
           "$ref": "#/components/responses/Error"
         '503':
+          "$ref": "#/components/responses/Error"
+        '413':
           "$ref": "#/components/responses/Error"
       requestBody:
         required: true
@@ -1150,6 +1178,8 @@ paths:
         '500':
           "$ref": "#/components/responses/Error"
         '503':
+          "$ref": "#/components/responses/Error"
+        '413':
           "$ref": "#/components/responses/Error"
       requestBody:
         required: true
@@ -1403,6 +1433,8 @@ paths:
           "$ref": "#/components/responses/Error"
         '503':
           "$ref": "#/components/responses/Error"
+        '413':
+          "$ref": "#/components/responses/Error"
       requestBody:
         required: true
         content:
@@ -1519,6 +1551,15 @@ components:
       schema:
         "$ref": "#/components/schemas/Timestamp"
       description: Exclusive UTC end; interval at most 366 days.
+    BrowserCsrf:
+      name: X-TapFlow-CSRF
+      in: header
+      required: true
+      description: Browser cookie mutation guard. An allowed Origin or Referer origin
+        is also required.
+      schema:
+        type: string
+        const: '1'
   headers:
     RequestId:
       description: Server-validated or generated request UUID.
@@ -1619,6 +1660,8 @@ components:
       - PAIRING_CODE_INVALID
       - PAIRING_CODE_EXPIRED
       - CARD_ALREADY_ENROLLED
+      - CSRF_REJECTED
+      - ACCOUNT_ALREADY_EXISTS
     Status:
       type: object
       additionalProperties: false
@@ -1632,7 +1675,7 @@ components:
           const: tapflow-api
         phase:
           type: string
-          const: foundation
+          const: authentication
         demo:
           type: boolean
           const: true

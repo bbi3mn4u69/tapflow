@@ -27,11 +27,11 @@ class ApplicationTest {
     }
 
     @Test
-    fun `status identifies the database foundation phase`() = testApplication {
+    fun `status identifies the authentication phase`() = testApplication {
         application { module() }
         val response = client.get("/api/v1/status")
         assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals("foundation", Json.parseToJsonElement(response.bodyAsText()).jsonObject["phase"]?.jsonPrimitive?.content)
+        assertEquals("authentication", Json.parseToJsonElement(response.bodyAsText()).jsonObject["phase"]?.jsonPrimitive?.content)
     }
 
     @Test

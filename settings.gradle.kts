@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "tapflow"
 include(":apps:android-card", ":apps:android-pos", ":packages:protocol-kotlin", ":services:payment-api")
+include(":packages:android-auth")

@@ -3,6 +3,13 @@ package com.tapflow.api
 import io.ktor.server.application.Application
 import com.tapflow.api.common.DomainError
 import com.tapflow.api.config.AppConfig
+import com.tapflow.api.config.AuthConfig
+import com.tapflow.api.auth.AuthService
+import com.tapflow.api.auth.RateLimits
+import com.tapflow.api.auth.authRoutes
+import com.tapflow.api.auth.configureAuthentication
+import com.tapflow.api.auth.configureRequestSecurity
+import com.tapflow.api.merchants.MerchantAccess
 import com.tapflow.api.config.configurePlugins
 import com.tapflow.api.db.Database
 import io.ktor.http.HttpStatusCode
@@ -17,17 +24,22 @@ import java.util.UUID
 
 fun main() {
     val config = AppConfig.fromEnvironment(System.getenv())
+    val authConfig = AuthConfig.fromEnvironment(System.getenv())
     Database.open(config.database).use { database ->
-        embeddedServer(Netty, host = config.host, port = config.port) { module(database) }.start(wait = true)
+        val auth = AuthService(database, authConfig)
+        embeddedServer(Netty, host = config.host, port = config.port) { module(database, auth = auth) }.start(wait = true)
     }
 }
 
-fun Application.module(database: Database? = null, nextRequestId: () -> UUID = UUID::randomUUID) {
+fun Application.module(database: Database? = null, nextRequestId: () -> UUID = UUID::randomUUID, auth: AuthService? = null, limits: RateLimits = RateLimits()) {
     configurePlugins(nextRequestId)
+    if (auth != null) configureAuthentication(auth)
+    configureRequestSecurity(limits)
     val contract = checkNotNull(Application::class.java.getResourceAsStream("/contracts/openapi.yaml")) {
         "The packaged API contract is missing"
     }.bufferedReader().use { it.readText() }
     routing {
+        if (auth != null && database != null) authRoutes(auth, MerchantAccess(database), limits)
         get("/health/live") {
             call.respond(HealthStatus("alive"))
         }
@@ -49,7 +61,7 @@ fun Application.module(database: Database? = null, nextRequestId: () -> UUID = U
 @kotlinx.serialization.Serializable
 data class SystemStatus(
     val service: String = "tapflow-api",
-    val phase: String = "foundation",
+    val phase: String = "authentication",
     val demo: Boolean = true,
 )
 

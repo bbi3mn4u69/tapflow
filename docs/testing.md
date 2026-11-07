@@ -36,6 +36,18 @@ No physical NFC, device Keystore, auth, transaction or production deployment acc
 - Tests never load the private runtime `.env`; Testcontainers databases are independent of Railway.
 - No Android source behavior changed in phase 1. The emulator evidence above remains the bootstrap baseline, not a new NFC or authentication check.
 
+## Verified phase 2 checks — 2026-11-08
+
+- Backend: 42 tests passed on real disposable PostgreSQL. Auth coverage includes JWT signature/algorithm/issuer/audience/expiry, active users, absolute refresh expiry, hashed storage, atomic simultaneous refresh, replay-family revocation, isolated logout, cross-client token rejection, CSRF/cookie flags, strict inputs/body limits, account/IP/pairing throttles, registration gating, and tenant/owner guards.
+- Both Android debug and unsigned release APKs build. App and shared-auth debug lint pass with no errors; upstream version/custom-check notices remain visible.
+- Six Android instrumentation tests passed without skips on the separate `TapFlow_Auth_API_36` phone AVD (Android 16/API 36, 720×1600, 360dp). Tests include live customer/operator login, encrypted session restoration, logout, rejection of a merchant account in the customer app, UI identity/demo labels and Keystore ciphertext corruption recovery.
+- `infra/scripts/test-auth-emulator.py` recreates the live mobile gate with a new PostgreSQL container, test-only users and loopback API. It overrides runtime settings, never reads `.env` and deletes only its own process/container/test volume. A single emulator is required; physical phones are excluded from this fixture script.
+- Portal: 12 unit tests passed, covering login, session restoration/network failure, inaccessible merchant routes, cache clearing, concurrent refresh, failed/second-401 sign-out and stale read rejection. OpenAPI validation, generated types, typecheck, lint, formatting and build are required before committing.
+- Live browser inspection verified owner login, workspace metadata, reload restoration, logout and no token storage/readable refresh cookie. Layouts were inspected at 1440px and 360px with reduced motion, no horizontal overflow and visible keyboard focus. The default Railway runtime also passed readiness, seeded-owner sign-in, profile, refresh, logout and post-logout 401 checks without printing credentials. An unauthenticated browser restore returns an expected network 401; no application JavaScript exception was observed.
+- The older Fold AVD repeatedly stalled in framework/app startup. A dedicated cold-booted phone AVD completed the same checks without an application workaround; the original AVD configuration/data was preserved. Android CLI captured the actual app screenshots under `docs/screenshots/phase2-*`.
+
+The owner-only HTTP route in the auth tests is test-only and exercises the real `MerchantAccess.require(..., owner=true)` transaction guard. Pairing/refund handlers and their financial effects remain later gates. Emulator Keystore behavior does not establish physical hardware key protection or NFC interoperability.
+
 ## Test-first workflow
 
 Start a behavior change with a failing test, verify its failure, implement the smallest change, and run the affected checks. Tests must assert observable behavior. Keep secrets out of fixtures and test output. Investigate a failing boundary before changing unrelated configuration.

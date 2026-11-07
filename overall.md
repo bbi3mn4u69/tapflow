@@ -1733,10 +1733,10 @@ Runtime database override (2026-11-07): use the user-provided Railway PostgreSQL
 
 ### Phase 2 — Auth and tenant isolation
 
-- [ ] Implement login/refresh/logout and `/me`, secure password hashing, refresh rotation, JWT validation.
-- [ ] Web login + authenticated layout/merchant switcher; mobile login screens.
-- [ ] Membership/role guard service + cross-merchant negative tests.
-- [ ] Rate limiting on authentication and pairing endpoints.
+- [x] Implement login/refresh/logout and `/me`, secure password hashing, refresh rotation, JWT validation.
+- [x] Web login + authenticated layout/merchant switcher; mobile login screens.
+- [x] Membership/role guard service + cross-merchant negative tests.
+- [x] Rate limiting on authentication and pairing endpoints.
 
 **Gate:** Web and mobile can log in; operator cannot access owner routes; no cross-tenant data.
 

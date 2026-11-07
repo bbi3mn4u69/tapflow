@@ -8,11 +8,11 @@ import org.junit.Test
 
 class BootstrapScreenTest {
     @get:Rule val compose = createAndroidComposeRule<MainActivity>()
-
-    @Test
-    fun identifiesCustomerAppAndDemoBoundary() {
+    @Test fun identifiesAppAndOffersSecureSignIn() {
         compose.onNodeWithText("DEMO / NO REAL MONEY").assertIsDisplayed()
-        compose.onNodeWithText("Your demo card.").assertIsDisplayed()
-        compose.onNodeWithText("Not enrolled").assertIsDisplayed()
+        compose.onNodeWithText("Customer Card").assertIsDisplayed()
+        compose.onNodeWithText("Email").assertIsDisplayed()
+        compose.onNodeWithText("Password").assertIsDisplayed()
+        compose.onNodeWithText("Sign in").assertIsDisplayed()
     }
 }

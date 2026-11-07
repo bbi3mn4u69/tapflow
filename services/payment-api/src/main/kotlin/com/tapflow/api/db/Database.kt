@@ -70,6 +70,8 @@ class Database private constructor(
         }
     }
 
+    suspend fun <T> query(block: (Connection) -> T): T = withContext(dispatcher) { transaction(block) }
+
     fun <T> transaction(block: (Connection) -> T): T = pool.connection.use { connection ->
         connection.autoCommit = false
         try {

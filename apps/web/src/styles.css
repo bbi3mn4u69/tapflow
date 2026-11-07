@@ -511,3 +511,250 @@ footer {
     border-color: #435e50;
   }
 }
+
+.login-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 4vw;
+}
+.login-grid {
+  display: grid;
+  grid-template-columns: minmax(18rem, 1fr) minmax(20rem, 1fr);
+  gap: clamp(3rem, 8vw, 9rem);
+  align-items: center;
+  max-width: 78rem;
+  min-height: calc(100svh - 8rem);
+  padding: 2rem 4vw 4rem;
+}
+.login-copy {
+  max-width: 25rem;
+  width: 100%;
+  margin-inline: auto;
+}
+.login-copy h1 {
+  font-size: clamp(2.4rem, 4vw, 3.5rem);
+}
+.login-copy .intro {
+  margin: 1rem 0 2rem;
+}
+.login-copy form > label {
+  display: block;
+  margin: 1.3rem 0 0.45rem;
+  font-size: 0.83rem;
+  font-weight: 600;
+}
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+.login-copy input {
+  display: block;
+  width: 100%;
+  min-height: 3.1rem;
+  border: 1px solid #b5c3ba;
+  border-radius: 0.55rem;
+  padding: 0.75rem 0.85rem;
+  background: #fff;
+}
+.login-copy input[aria-invalid='true'] {
+  border-color: #a13e2e;
+}
+.password-field {
+  position: relative;
+}
+.password-field input {
+  padding-right: 4.6rem;
+}
+.password-toggle {
+  position: absolute;
+  right: 0.25rem;
+  top: 0.2rem;
+  height: 2.7rem;
+  min-width: 3.6rem;
+  border: 0;
+  background: transparent;
+  color: #315f51;
+  font-size: 0.78rem;
+  border-radius: 0.3rem;
+}
+.sign-in {
+  width: 100%;
+  justify-content: space-between;
+  margin-top: 1.7rem;
+  font-size: 0.87rem;
+  min-height: 3.1rem;
+}
+.login-help {
+  font-size: 0.76rem;
+  line-height: 1.7;
+  color: #536660;
+  margin-top: 1rem;
+}
+.simulation-note {
+  font-size: 0.7rem;
+  line-height: 1.65;
+  color: #617071;
+  margin-top: 2.8rem;
+}
+.field-error,
+.form-error {
+  color: #933c2e;
+  font-size: 0.81rem;
+}
+.field-error {
+  margin: 0.4rem 0;
+}
+.form-error {
+  padding: 0.9rem;
+  border-radius: 0.5rem;
+  border: 1px solid #dfc0b6;
+  background: #fcf1ed;
+  line-height: 1.6;
+}
+.login-art {
+  border-radius: 1.4rem;
+  min-height: 35rem;
+  background: #eaf0e6;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.login-art .tap-illustration {
+  min-height: 22rem;
+}
+.login-art .demo-card {
+  width: 16rem;
+}
+.login-art-copy {
+  position: relative;
+  padding: 0 2.5rem 2.5rem;
+}
+.login-art-copy h2 {
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  line-height: 1.14;
+  font-weight: 500;
+}
+.login-art-copy p:last-child {
+  font-size: 0.8rem;
+  color: #53675e;
+}
+.session-message {
+  max-width: 36rem;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2rem;
+}
+.session-message h1 {
+  font-size: 2.5rem;
+}
+.session-message p {
+  margin: 0;
+}
+.merchant-select {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #536660;
+}
+.merchant-select select {
+  display: block;
+  max-width: min(45vw, 24rem);
+  margin-top: 0.2rem;
+  min-height: 2.75rem;
+  border: 1px solid #b5c3ba;
+  border-radius: 0.45rem;
+  background: #fff;
+  padding: 0.4rem 1.5rem 0.4rem 0.5rem;
+  font-size: 0.8rem;
+}
+.account-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.78rem;
+  color: #536660;
+  margin-bottom: 2.7rem;
+  overflow-wrap: anywhere;
+}
+.text-button {
+  background: transparent;
+  border: 1px solid #c4cfc5;
+  border-radius: 0.45rem;
+  padding: 0.55rem 0.85rem;
+  min-height: 2.75rem;
+  color: #214b3e;
+  font-size: 0.8rem;
+}
+.nav-pending {
+  display: block;
+  padding: 0.8rem;
+  color: #65736c;
+  font-size: 0.83rem;
+}
+.role-badge {
+  background: #e1e9e1;
+  padding: 0.5rem 0.85rem;
+  border-radius: 0.5rem;
+  font-size: 0.76rem;
+  color: #315f51;
+}
+.workspace-empty {
+  min-height: 22rem;
+  padding-block: 2rem;
+}
+.workspace-empty h1 {
+  font-size: 2.3rem;
+}
+.workspace-empty p {
+  max-width: 32rem;
+  color: #536660;
+}
+.workspace-empty a {
+  text-decoration: underline;
+}
+@media (max-width: 760px) {
+  .login-topbar {
+    padding: 1.5rem;
+  }
+  .login-grid {
+    display: block;
+    padding: 2.2rem 1.5rem 3rem;
+    min-height: auto;
+  }
+  .login-copy {
+    max-width: 28rem;
+  }
+  .login-art {
+    display: none;
+  }
+  .simulation-note {
+    margin-top: 2rem;
+  }
+  .session-message {
+    padding-inline: 1.5rem;
+  }
+  .merchant-select select {
+    max-width: 44vw;
+  }
+  .topbar:has(.merchant-select) {
+    justify-content: space-between;
+    padding: 0.75rem 1.5rem;
+  }
+  .account-row {
+    margin-bottom: 2rem;
+  }
+  .page-heading h1 {
+    overflow-wrap: anywhere;
+  }
+  .sidebar nav {
+    display: none;
+  }
+}
