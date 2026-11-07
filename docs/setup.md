@@ -65,7 +65,7 @@ corepack pnpm install --frozen-lockfile
 corepack pnpm dev
 ```
 
-If Corepack is unavailable, use `npx --yes pnpm@9.12.3` instead of `corepack pnpm`.
+If Corepack is unavailable, use `npx --yes pnpm@9.12.3` instead of `corepack pnpm`. Restart the API after rebuilding Kotlin classes; server autoreload is disabled. Reload the portal after changing shared session-client classes so Fast Refresh does not retain an older client instance.
 
 Vite proxies `/api` to the API on port 8080. `API_HOST`/`API_PORT` configure the server. Endpoints implemented now:
 

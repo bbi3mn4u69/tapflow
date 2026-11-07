@@ -17,7 +17,7 @@ Phase 2 implements authentication and merchant access. Device card keys, NFC pro
 
 Browser refresh cookies are host-only, HttpOnly, Secure on HTTPS, SameSite=Lax and path-scoped. Exact allowed origins and the custom CSRF header protect login, refresh and logout; missing, null or unlisted origins are rejected unless a valid same-origin Referer is supplied. Do not add wildcard credentialed CORS. Loopback HTTP development is the only Secure-cookie exception.
 
-The portal never writes access/refresh tokens to localStorage or sessionStorage. Restoration and concurrent 401 handling share a single refresh request. A failed refresh clears identity/cache; a second rejected access token also signs out. Merchant query keys include the merchant ID, and a late read from a previous identity is rejected.
+The portal never writes access/refresh tokens to localStorage or sessionStorage. Restoration and concurrent 401 handling share a single refresh request. Browser requests have a 20-second deadline, preserving caller cancellation and showing a retryable connection error on timeout. A failed refresh clears identity/cache; a second rejected access token also signs out. Merchant query keys include the merchant ID, and a late read from a previous identity is rejected.
 
 Android saves only AES-GCM authenticated ciphertext in private preferences, using a non-exportable Android Keystore key. Access tokens and entered passwords stay in transient memory. Corrupt/lost encryption state requires sign-in. Backups are disabled. Release networking requires HTTPS; only debug emulator traffic to `10.0.2.2` permits HTTP. Emulator Keystore tests establish API behavior, not hardware-backed key protection on physical phones.
 

@@ -89,8 +89,10 @@ export class SessionClient {
     const headers = new Headers(init.headers)
     headers.set('X-Request-ID', crypto.randomUUID())
     if (init.method === 'POST') headers.set('X-TapFlow-CSRF', '1')
+    const deadline = AbortSignal.timeout(20_000)
     const response = await fetch(`${this.base}${path}`, {
       ...init,
+      signal: init.signal ? AbortSignal.any([init.signal, deadline]) : deadline,
       headers,
       credentials: 'same-origin',
       cache: 'no-store',

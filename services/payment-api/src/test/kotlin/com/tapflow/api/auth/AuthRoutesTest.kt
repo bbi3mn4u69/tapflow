@@ -246,10 +246,17 @@ class AuthRoutesTest {
     }
 
     @Test fun `refresh expiry is absolute and opaque tokens are persisted only as hashes`() = testApplication {
-        val clock = MutableClock()
+        val clock = MutableClock(java.time.Instant.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).plusNanos(999_999_999))
         application { module(db, auth = AuthService(db, authConfig, clock)) }
         val session = client.login().bodyAsText().obj()
         val raw = session.string("refreshToken")
+        db.query { c -> c.prepareStatement("select expires_at from refresh_sessions where token_hash=?").use { statement ->
+            statement.setBytes(1, java.security.MessageDigest.getInstance("SHA-256").digest(raw.toByteArray()))
+            statement.executeQuery().use { rows ->
+                assertTrue(rows.next())
+                assertEquals(clock.now.truncatedTo(java.time.temporal.ChronoUnit.MICROS).plusSeconds(14 * 86400L), rows.getTimestamp(1).toInstant())
+            }
+        } }
         db.query { c -> c.createStatement().use { s -> s.executeQuery("select token_hash from refresh_sessions").use { r ->
             while (r.next()) { assertEquals(32, r.getBytes(1).size); assertFalse(r.getBytes(1).contentEquals(raw.toByteArray())) }
         } } }

@@ -143,3 +143,38 @@ it('clears a session when a renewed access token is also rejected', async () => 
   await expect(client.get('/me', z.string())).rejects.toThrow('Sign in again')
   expect(client.getSnapshot().user).toBeNull()
 })
+
+it('ends session restoration with a recoverable error when the connection stalls', async () => {
+  vi.useFakeTimers()
+  try {
+    vi.spyOn(AbortSignal, 'timeout').mockImplementation((milliseconds) => {
+      const controller = new AbortController()
+      setTimeout(
+        () => controller.abort(new DOMException('Timed out', 'TimeoutError')),
+        milliseconds,
+      )
+      return controller.signal
+    })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        (_input: string, init: RequestInit) =>
+          new Promise<Response>((_resolve, reject) => {
+            init.signal?.addEventListener(
+              'abort',
+              () => reject(init.signal?.reason),
+              { once: true },
+            )
+          }),
+      ),
+    )
+    const client = new SessionClient()
+    const restore = client.restore()
+    await vi.advanceTimersByTimeAsync(20_000)
+    expect(client.getSnapshot().status).toBe('error')
+    expect(client.getSnapshot().user).toBeNull()
+    await restore
+  } finally {
+    vi.useRealTimers()
+  }
+})

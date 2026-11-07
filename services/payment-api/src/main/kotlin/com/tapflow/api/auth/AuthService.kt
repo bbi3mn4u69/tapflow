@@ -8,12 +8,15 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.Clock
+import java.time.Duration
 import java.security.SecureRandom
 import java.util.Locale
 import java.util.UUID
 
-class AuthService(private val db: Database, val config: AuthConfig, private val clock: Clock = Clock.systemUTC(), private val nextId: () -> UUID = UUID::randomUUID, random: SecureRandom = SecureRandom()) {
-    val tokens = TokenService(config, clock, random, nextId)
+class AuthService(private val db: Database, val config: AuthConfig, clock: Clock = Clock.systemUTC(), private val nextId: () -> UUID = UUID::randomUUID, random: SecureRandom = SecureRandom()) {
+    // PostgreSQL stores microseconds; truncate before expiry math so persistence cannot round the deadline up.
+    private val clock = Clock.tick(clock, Duration.ofNanos(1_000))
+    val tokens = TokenService(config, this.clock, random, nextId)
     private val repo = AuthRepository(nextId)
     private val hashing = Dispatchers.Default.limitedParallelism(2)
     private val argon = Argon2Factory.create(Argon2Factory.Argon2Types.ARGON2id)
