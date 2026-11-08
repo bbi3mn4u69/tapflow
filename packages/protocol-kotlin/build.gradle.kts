@@ -13,9 +13,11 @@ java {
 }
 
 dependencies {
+    testImplementation(libs.serialization.json)
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly(libs.junit.launcher)
 }
 
 tasks.test { useJUnitPlatform() }
+sourceSets.test { resources.srcDir(rootProject.file("contracts/fixtures")) }
