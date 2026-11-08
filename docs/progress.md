@@ -39,12 +39,32 @@ Complete locally on 2026-11-08. Browser and both Android apps sign in against th
 
 The phase gate passed locally: web and mobile sign-in/restoration/logout, operator denied by the real owner guard, and cross-merchant requests rejected. Physical NFC acceptance is not part of this phase.
 
+## Phase 3 — Card protocol and enrollment software
+
+Implemented and verified on 2026-11-09 using the emulator only. The user requested
+physical NFC be recorded as pending; the complete phase gate is therefore open.
+
+- Pure JVM challenge/APDU codecs, canonical signing bytes, strict P-256 SPKI/DER
+  verification and generation-guarded HCE session state with independent fixtures.
+- Device-generated non-exportable AndroidKeyStore signing keys, stable pending
+  enrollment retries, customer wallet/activity, explicit demo tapping and disabling.
+- Atomic one-time DEMO_FUNDING, customer-scoped idempotency/reconciliation, bounded
+  enrollment and owner-scoped card/wallet/activity API routes.
+- Async HCE service with BIND_NFC_SERVICE/custom AID, unlock/screen requirements,
+  no network/DB in APDUs, stale response rejection and session-bound tapping consent.
+- Public contract/types, protocol/key/enrollment decisions and test-only fixture
+  provenance. Runtime Railway credentials and data are preserved.
+
+Software checks are recorded in [testing](testing.md). Pending: SELECT on a
+supported physical phone; then phase 4 pairing/POS and the two-phone RF exchange.
+An emulator engine response does not satisfy those physical gates.
+
 ## Remaining ordered work
 
-1. Phase 3: shared APDU fixtures/codecs, device keys, card enrollment and HCE.
+1. Finish the phase 3 physical NFC SELECT acceptance gate when hardware is available.
 2. Phase 4: terminal pairing, POS reader and physical proof exchange.
 3. Phase 5: atomic payments, ledger, idempotency, recovery and concurrency tests.
 4. Phase 6: full merchant portal, refunds, audit and browser E2E.
 5. Phase 7: containerized API/web, production topology, operations, security hardening and recorded demo.
 
-Do not treat starter screens, a healthy process, or passing bootstrap tests as acceptance of the payment system. The next phase is the shared NFC protocol and customer card enrollment, after the phase 2 authentication gate.
+Do not treat a signed challenge or a funded demo wallet as payment authorization.

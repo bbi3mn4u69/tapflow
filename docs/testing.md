@@ -59,3 +59,38 @@ Later phases must extend real PostgreSQL Testcontainers coverage to transactiona
 Android protocol/signature tests cover canonical bytes and malformed APDUs. Keystore instrumentation establishes API behavior on the tested runtime, not hardware-backed key security on every device. Physical NFC testing remains separate, with device/OS combinations recorded.
 
 Browser E2E coverage will exercise sign-in, payment lookup, owner refund and updated totals against the real backend. Do not count a fabricated dashboard or a simulated transport as a physical NFC acceptance test.
+
+## Phase 3 software checks — 2026-11-09
+
+- Protocol: 7 JVM tests compare independent fixed SELECT/challenge/canonical/proof
+  vectors, strict APDU/DER validation, signed-field tampering and stale generations.
+- Backend: 55 tests pass on disposable PostgreSQL 17.11, including 13 new card/
+  key/config tests. Enrollment covers exact replay, changed-payload conflict,
+  concurrent retries, same-SPKI reconciliation, customer/role isolation, repeated
+  disabling, invalid curves/encoding, hourly/account caps, environment gating,
+  cursor bounds and rollback after a failure following wallet/ledger insertion.
+  The server verifies a fixed signed challenge using the shared verifier.
+- Android: 10 instrumentation tests pass without skips on `TapFlow_Auth_API_36`
+  (8 Card, 2 POS), using `python3 infra/scripts/test-auth-emulator.py`. Added checks
+  cover actual non-exportable Keystore P-256 signing, enrollment, A$100.00 wallet,
+  activity recreation/restoration, refresh, disabling and the always-visible demo notice; the actual asynchronous
+  HCE engine signs/verifies a challenge and rejects stale/signed-out requests.
+  Installed HCE metadata is checked for its system permission, unlock and custom AID.
+- Both debug and unsigned release app builds and Card/POS/shared-auth debug lint
+  pass with zero errors. Existing upstream notices remain; lint also notes that
+  the explicit screen-on XML attribute is recognized from API 31 (older HCE
+  versions require screen-on by default).
+- Portal: 13 tests plus generated types, contract lint, typecheck, ESLint, formatting
+  and production build pass with the phase-3 status contract.
+- Runtime JARs and debug/release APKs are checked to exclude the test-only fixture
+  private key. Changed files are scanned against the ignored runtime credentials.
+  No enrollment/funding fixture is sent to Railway.
+
+The [wallet screenshot](screenshots/phase3-wallet-api36.png) was captured from the live disposable enrollment test and visually inspected. The demo header remains visible while scrolling.
+
+The HCE engine harness runs with fresh emulator-generated test keys and an injected
+unlock predicate. It does **not** prove system NFC routing, radio timings, device
+unlock enforcement on physical hardware, hardware key protection, SELECT on a
+physical phone or two-phone ISO-DEP interoperability. Those acceptance checks are
+pending by the user's emulator-only instruction. The payment authorizer/POS reader
+are not implemented; a valid signature is not approval or a successful payment.

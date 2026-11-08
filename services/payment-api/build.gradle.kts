@@ -57,3 +57,5 @@ tasks.withType<JavaExec>().configureEach {
 tasks.processResources {
     from(rootProject.file("contracts/openapi.yaml")) { into("contracts") }
 }
+
+sourceSets.test { resources.srcDir(rootProject.file("contracts/fixtures")) }

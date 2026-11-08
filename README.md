@@ -6,7 +6,7 @@ Two Android apps exchange proprietary APDUs; a Kotlin/Ktor API will verify devic
 
 ## Current milestone
 
-Phase 2: authentication and merchant access. The portal and both Android apps sign in against Ktor, restore rotating refresh sessions and sign out. Merchant membership and owner guards run in PostgreSQL queries. Browser tokens stay in memory; Android refresh tokens use Keystore-backed encryption. Runtime development uses Railway; tests use isolated PostgreSQL. Card enrollment, NFC, payments, terminal pairing and refunds are **not implemented yet**. See [progress](docs/progress.md) and the governing [specification](overall.md).
+Phase 3 software: the Android Card app creates a non-exportable P-256 key, enrolls its public key, loads its one-time funded demo wallet and disables owned cards. The API applies atomic funding, scoped idempotency and customer isolation. Shared APDU codecs, strict signature verification and the asynchronous HCE service have emulator coverage. Authentication remains available across web and both Android apps. Runtime development uses Railway; tests use isolated PostgreSQL. **Physical NFC acceptance is pending** by user choice; payments, terminal pairing, POS reader and refunds remain later work. See [progress](docs/progress.md) and the governing [specification](overall.md).
 
 ## Run locally
 
@@ -24,7 +24,7 @@ corepack pnpm install --frozen-lockfile
 corepack pnpm dev
 ```
 
-Open [localhost:5173](http://localhost:5173/login) and sign in with your seeded owner/operator account. `/health/live` confirms the process is running; `/health/ready` returns 200 only when PostgreSQL is reachable and migrations validate, otherwise 503. [OpenAPI](http://localhost:8080/api/v1/openapi.yaml) describes the full planned v1; `x-implementation-phase` identifies which milestone implements each operation. System, authentication, identity and merchant metadata endpoints run in phase 2.
+Open [localhost:5173](http://localhost:5173/login) and sign in with your seeded owner/operator account. `/health/live` confirms the process is running; `/health/ready` returns 200 only when PostgreSQL is reachable and migrations validate, otherwise 503. [OpenAPI](http://localhost:8080/api/v1/openapi.yaml) describes the full planned v1; `x-implementation-phase` identifies which milestone implements each operation. System, authentication, identity, merchant metadata and customer card/wallet endpoints run in phase 3.
 
 Set three distinct `SEED_*_PASSWORD` values locally, then run `./infra/scripts/seed-demo.sh` to create `owner@example.test`, `operator@example.test`, `customer@example.test` and one demo merchant. Seed reruns preserve existing passwords and create no device keys or funded wallets. Passwords never belong in Git or command-line arguments.
 
@@ -56,11 +56,11 @@ See [testing](docs/testing.md) for scope and hardware limitations. GitHub Action
 
 ```text
 apps/
-  android-card/          Customer Compose app; HCE implementation follows in phase 3
+  android-card/          Customer Compose wallet, device enrollment and HCE service
   android-pos/           Merchant Compose app; reader implementation follows in phase 4
   web/                   React + TypeScript + Vite merchant workspace
 packages/android-auth/    Shared native sign-in, encrypted storage and session UI
-packages/protocol-kotlin/ Pure Kotlin/JVM module; APDU contract follows in phase 3
+packages/protocol-kotlin/ Pure Kotlin/JVM APDU codecs, session state and verification
 services/payment-api/    Kotlin/Ktor application and HTTP tests
 contracts/               OpenAPI source; web types are generated from it
 infra/compose/           Pinned PostgreSQL development service
@@ -71,7 +71,7 @@ docs/                    Setup, decisions, design, testing and progress
 
 The backend runs on JDK 21. Shared protocol bytecode targets JVM 17 for Android consumption. Client secrets never belong in Vite configuration. Private HCE keys must never leave the customer phone.
 
-Live authentication on an emulator, using a disposable API/database and instrumentation-only accounts:
+Live authentication and card enrollment on an emulator, using a disposable API/database and instrumentation-only accounts:
 
 ```sh
 python3 infra/scripts/test-auth-emulator.py

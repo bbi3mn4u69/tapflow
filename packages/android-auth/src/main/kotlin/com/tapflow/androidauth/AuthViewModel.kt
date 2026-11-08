@@ -7,32 +7,76 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-data class AuthUiState(val busy: Boolean = true, val user: MobileUser? = null, val error: String? = null)
+data class AuthUiState(
+    val busy: Boolean = true,
+    val user: MobileUser? = null,
+    val error: String? = null,
+)
 
-class AuthViewModel(private val repository: MobileAuthRepository) : ViewModel() {
+class AuthViewModel(
+    val repository: MobileAuthRepository,
+    private val beforeLogout: suspend () -> Unit = {},
+) : ViewModel() {
     private val mutableState = MutableStateFlow(AuthUiState())
     val state = mutableState.asStateFlow()
-    init { restore() }
+
+    init {
+        viewModelScope.launch {
+            repository.sessionUser.collect { user ->
+                if (user == null && mutableState.value.user != null)
+                    mutableState.value =
+                        AuthUiState(busy = false, error = "Your session ended. Sign in again.")
+            }
+        }
+        restore()
+    }
+
     fun restore() = run { repository.restore() }
+
     fun login(email: String, password: String) {
         if (mutableState.value.busy) return
-        if (email.trim().length !in 3..254 || !android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches() || password.length !in 1..128) {
-            mutableState.value = AuthUiState(error = "Enter a valid email and your password (up to 128 characters).", busy = false)
+        if (
+            email.trim().length !in 3..254 ||
+                !android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches() ||
+                password.length !in 1..128
+        ) {
+            mutableState.value =
+                AuthUiState(
+                    error = "Enter a valid email and your password (up to 128 characters).",
+                    busy = false,
+                )
             return
         }
         run(login = true) { repository.login(email, password) }
     }
-    fun logout() { if (!mutableState.value.busy) run { repository.logout(); null } }
+
+    fun logout() {
+        if (!mutableState.value.busy)
+            run {
+                beforeLogout()
+                repository.logout()
+                null
+            }
+    }
+
     private fun run(login: Boolean = false, action: suspend () -> MobileUser?) {
         val previous = mutableState.value.user
         mutableState.value = AuthUiState(busy = true, user = previous)
         viewModelScope.launch {
-            try { mutableState.value = AuthUiState(busy = false, user = action()) }
-            catch (failure: Exception) {
+            try {
+                mutableState.value = AuthUiState(busy = false, user = action())
+            } catch (failure: Exception) {
                 if (failure is CancellationException) throw failure
-                mutableState.value = AuthUiState(busy = false, user = previous,
-                    error = if (login && failure is AuthFailure && failure.status == 401) "Email or password is incorrect."
-                        else if (failure is AuthFailure) failure.message else "Could not connect. Please try again.")
+                mutableState.value =
+                    AuthUiState(
+                        busy = false,
+                        user = repository.sessionUser.value,
+                        error =
+                            if (login && failure is AuthFailure && failure.status == 401)
+                                "Email or password is incorrect."
+                            else if (failure is AuthFailure) failure.message
+                            else "Could not connect. Please try again.",
+                    )
             }
         }
     }

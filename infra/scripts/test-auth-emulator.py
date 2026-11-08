@@ -55,7 +55,8 @@ def main():
                    JWT_SIGNING_SECRET=secrets.token_urlsafe(48), JWT_ISSUER="tapflow-instrumentation",
                    JWT_AUDIENCE="tapflow-clients", ACCESS_TOKEN_TTL_SECONDS="900", REFRESH_TOKEN_TTL_DAYS="14",
                    APP_PUBLIC_URL="http://localhost:5173", ALLOWED_ORIGINS="http://localhost:5173",
-                   DEMO_CUSTOMER_REGISTRATION_ENABLED="false")
+                   DEMO_CUSTOMER_REGISTRATION_ENABLED="false",
+                   DEMO_CARD_ENROLLMENT_ENABLED="true", DEMO_INITIAL_BALANCE_MINOR="10000")
         for key in ("SEED_OWNER_PASSWORD", "SEED_OPERATOR_PASSWORD", "SEED_CUSTOMER_PASSWORD"):
             env[key] = "instrumentation-only-passphrase"
         classpath = str(root / "services/payment-api/build/install/payment-api/lib/*")
@@ -78,7 +79,7 @@ def main():
             f"-PtapflowApiBaseUrl=http://10.0.2.2:{api_port}/api/v1",
             "-Pandroid.testInstrumentationRunnerArguments.tapflowLiveAuth=true", "--no-parallel", "--console=plain",
         ], check=True)
-        print("Live sign-in, encrypted restoration and logout passed against disposable PostgreSQL.")
+        print("Live authentication, card enrollment/wallet/disable and Keystore/HCE harness checks passed against disposable PostgreSQL.")
     finally:
         if api is not None and api.poll() is None:
             api.terminate()

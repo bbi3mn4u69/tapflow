@@ -73,7 +73,7 @@ export interface paths {
         };
         /**
          * Read the v1 API contract
-         * @description Contract for the complete planned v1. Phase 1 system endpoints and phase 2 authentication, identity and merchant metadata are implemented. DEMO / NO REAL MONEY.
+         * @description Contract for the complete planned v1. Phase 1 system endpoints, phase 2 authentication, identity and merchant metadata, and phase 3 customer cards/wallets are implemented. DEMO / NO REAL MONEY.
          */
         get: operations["getOpenApi"];
         put?: never;
@@ -259,7 +259,7 @@ export interface paths {
         put?: never;
         /**
          * Enroll the customer device public key
-         * @description Enroll the customer device public key. DEMO / NO REAL MONEY.
+         * @description Enroll the customer device public key and fund its wallet once. DEMO / NO REAL MONEY. A saved idempotency key replays its original response; changing its payload returns 409. The same customer/key/label reconciles to its existing card without new funding. At most 3 new keys per customer per rolling hour and 100 cards per account are allowed. Enrollment defaults off outside development/test unless explicitly enabled.
          */
         post: operations["enrollCard"];
         delete?: never;
@@ -651,12 +651,12 @@ export interface components {
         /** @enum {string} */
         RefundReason: "CUSTOMER_REQUEST" | "DUPLICATE" | "OTHER";
         /** @enum {string} */
-        ErrorCode: "VALIDATION_ERROR" | "UNSUPPORTED_CURRENCY" | "INVALID_CARD_PROOF" | "UNAUTHENTICATED" | "INSUFFICIENT_ROLE" | "RESOURCE_NOT_FOUND" | "IDEMPOTENCY_KEY_REUSED" | "INVALID_PAYMENT_STATE" | "REFUND_EXCEEDS_REMAINING" | "TERMINAL_DISABLED" | "PAYMENT_INTENT_EXPIRED" | "RATE_LIMITED" | "INTERNAL_ERROR" | "SERVICE_UNAVAILABLE" | "PAIRING_CODE_INVALID" | "PAIRING_CODE_EXPIRED" | "CARD_ALREADY_ENROLLED" | "CSRF_REJECTED" | "ACCOUNT_ALREADY_EXISTS";
+        ErrorCode: "VALIDATION_ERROR" | "UNSUPPORTED_CURRENCY" | "INVALID_CARD_PROOF" | "UNAUTHENTICATED" | "INSUFFICIENT_ROLE" | "RESOURCE_NOT_FOUND" | "IDEMPOTENCY_KEY_REUSED" | "INVALID_PAYMENT_STATE" | "REFUND_EXCEEDS_REMAINING" | "TERMINAL_DISABLED" | "PAYMENT_INTENT_EXPIRED" | "RATE_LIMITED" | "INTERNAL_ERROR" | "SERVICE_UNAVAILABLE" | "PAIRING_CODE_INVALID" | "PAIRING_CODE_EXPIRED" | "CARD_ALREADY_ENROLLED" | "ENROLLMENT_DISABLED" | "CARD_LIMIT_REACHED" | "CSRF_REJECTED" | "ACCOUNT_ALREADY_EXISTS";
         Status: {
             /** @constant */
             service: "tapflow-api";
             /** @constant */
-            phase: "authentication";
+            phase: "card-enrollment";
             /** @constant */
             demo: true;
         };
@@ -728,7 +728,7 @@ export interface components {
             algorithm: "P256_SHA256_ECDSA";
             /**
              * Format: byte
-             * @description X.509 SPKI DER encoding of a P-256 public key only. The private key never leaves the device.
+             * @description Canonical 91-byte X.509 SPKI DER encoding with an uncompressed P-256 public point only. The private key never leaves the device.
              */
             publicKeySpkiBase64: string;
         };

@@ -96,7 +96,7 @@ Set `SEED_OWNER_PASSWORD`, `SEED_OPERATOR_PASSWORD` and `SEED_CUSTOMER_PASSWORD`
 
 This creates one `TapFlow Demo Store`, owner/operator merchant accounts, one customer account, memberships and a seed audit event. The synthetic emails are `owner@example.test`, `operator@example.test` and `customer@example.test`. Passwords are Argon2id hashes; plaintext passwords are never printed. Reruns preserve existing passwords and reject conflicting account roles. Seeding is restricted to development/test mode.
 
-Seeding creates no virtual card, private key, wallet or funds. Card enrollment on the Android device will create the demo wallet in phase 3. Sign in with the corresponding private `SEED_*_PASSWORD` from your local configuration. Seed passwords are not changed by a rerun.
+Seeding creates no virtual card, private key, wallet or funds. Enrollment in the Android Card app creates the demo wallet once. Sign in with the corresponding private `SEED_*_PASSWORD` from your local configuration. Seed passwords are not changed by a rerun.
 
 ## Optional local PostgreSQL fallback
 
@@ -113,7 +113,7 @@ Automated tests do not use either runtime database. Testcontainers starts fresh 
 
 ## Android
 
-Open the repository root in Android Studio, sync, then run either app module. Both APKs can coexist on one emulator. Card requires a CUSTOMER account; POS requires a MERCHANT account. The apps restore encrypted refresh sessions and provide server-side logout. Card enrollment, terminal pairing and NFC are not enabled yet.
+Open the repository root in Android Studio, sync, then run either app module. Both APKs can coexist on one emulator. Card requires a CUSTOMER account; POS requires a MERCHANT account. The apps restore encrypted refresh sessions and provide server-side logout. Card enrollment, wallet/activity and disabling are available. HCE software is implemented; physical NFC acceptance, terminal pairing and POS reader remain pending.
 
 Debug defaults to `http://10.0.2.2:8080/api/v1`, the emulator's route to the host API. HTTP is allowed only for that emulator host in the debug network-security file. To use a reachable HTTPS endpoint, supply `-PtapflowApiBaseUrl=https://YOUR_HOST/api/v1` to Gradle (or its Gradle configuration in Android Studio).
 
@@ -125,6 +125,31 @@ To verify authentication with one running emulator, Python 3, JDK 21 and Docker:
 python3 infra/scripts/test-auth-emulator.py
 ```
 
-This builds an API distribution, starts a new PostgreSQL container and loopback API on random ports, seeds instrumentation-only accounts, then runs both live Android sign-in suites. It does not load `.env` or use Railway. It cleans up its own API/container and anonymous test volume. Use a dedicated AVD: the command installs both debug apps and exercises their auth storage. The test APKs target a temporary port; run the normal Android Studio/Gradle debug build again to restore the normal API URL.
+This builds an API distribution, starts a new PostgreSQL container and loopback API on random ports, seeds instrumentation-only accounts, then runs both live Android sign-in suites plus device enrollment, wallet restoration, disabling and the HCE engine harness. It does not load `.env` or use Railway. It cleans up its own API/container and anonymous test volume. Use a dedicated AVD: the command installs both debug apps and exercises their auth storage. The test APKs target a temporary port; run the normal Android Studio/Gradle debug build again to restore the normal API URL.
 
 For UI/Keystore checks alone against the default debug URL, use the connected test commands in the README. Live tests skip unless `tapflowLiveAuth=true` is set by the disposable fixture script. Never set that flag against a runtime database with the fixture passwords.
+
+
+## Customer card and wallet
+
+Sign in to Android Card as `customer@example.test` using its private seed password.
+Choose a label and enroll once. The device retains its AndroidKeyStore key and a
+pending enrollment ID; retries reuse both. Reopening/signing in loads the existing
+wallet rather than funding it again. The default demo balance is A$100.00.
+
+`DEMO_INITIAL_BALANCE_MINOR` is integer cents (1–1,000,000). The new
+`DEMO_CARD_ENROLLMENT_ENABLED` flag defaults true only in development/test;
+staging/production must explicitly enable it. Changing initial funding affects
+new cards only. Fresh keys are limited to three/hour/customer and 100 cards per
+account; request attempts including retries are limited to 60/minute/customer.
+
+An emulator can enroll and inspect its wallet without NFC hardware. The UI reports
+missing NFC/HCE support and cannot enable physical tapping readiness there. On a
+supported phone, turn on NFC, unlock and explicitly enable demo tapping. A login
+or refresh pauses this session's consent until enabled again. Sign-out/pause also
+stop local tapping. Disable is server authoritative; it never resets the balance.
+
+If a stored key is lost, disable the old card, then choose replacement setup. No
+private key recovery, wallet transfer or automatic replacement is performed.
+See [protocol](nfc-protocol.md) and [testing](testing.md) for exact verification
+scope. The physical NFC gate remains pending; no POS reader is implemented yet.

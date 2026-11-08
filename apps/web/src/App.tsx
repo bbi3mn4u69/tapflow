@@ -443,8 +443,9 @@ function Workspace({ denied = false }: { denied?: boolean }) {
                   <p className="eyebrow">READY FOR WHAT’S NEXT</p>
                   <h2>A workspace for your team.</h2>
                   <p>
-                    Your merchant access is verified. Payments, terminal pairing
-                    and card enrollment will be available in a later build.
+                    Your merchant access is verified. Payments and terminal
+                    pairing will be available in a later build. Customer device
+                    enrollment is now available in the Android Card app.
                   </p>
                   <div className="connection-status">
                     <span className="status-dot online" aria-hidden="true" />

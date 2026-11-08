@@ -1742,12 +1742,14 @@ Runtime database override (2026-11-07): use the user-provided Railway PostgreSQL
 
 ### Phase 3 — Shared NFC protocol and virtual card enrollment
 
-- [ ] Implement shared `protocol-kotlin` APDU parsing/encoding/canonical bytes and fixture tests.
-- [ ] Implement Android Card Keystore generation, enrollment API, card/wallet views, HCE service.
-- [ ] Implement demo wallet funding as exactly one `DEMO_FUNDING` ledger entry.
-- [ ] Write server signature verifier against fixture public key.
+- [x] Implement shared `protocol-kotlin` APDU parsing/encoding/canonical bytes and fixture tests.
+- [x] Implement Android Card Keystore generation, enrollment API, card/wallet views, HCE service.
+- [x] Implement demo wallet funding as exactly one `DEMO_FUNDING` ledger entry.
+- [x] Write server signature verifier against fixture public key.
 
 **Gate:** Card enrolled and server can verify a test signed challenge; HCE responds to SELECT on a supported physical device.
+
+Physical gate pending: user requested emulator-only testing on 2026-11-09. The engine/Keystore harness is software evidence only.
 
 ### Phase 4 — Terminal pairing and POS reader
 

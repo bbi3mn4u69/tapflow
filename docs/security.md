@@ -32,3 +32,22 @@ Never log passwords, JWTs, cookies, refresh secrets, pairing codes or request bo
 To force sign-out everywhere, generate a new private JWT signing key and revoke refresh sessions in an operator-controlled transaction before restarting the API. Changing only the JWT key does not invalidate refresh tokens. Public deployment also requires least-privilege DB credentials, verified TLS, backups/restoration, proxy hardening and the later operational checks.
 
 See [ADR-006](adr/ADR-006-web-and-mobile-sessions.md) and [testing evidence](testing.md).
+
+## Card enrollment and HCE — phase 3
+
+Only authenticated active CUSTOMER users can enroll/read/disable their own cards.
+Canonical P-256 SPKI validation precedes database work. Enrollment and one-time
+funding are atomic, with scoped idempotency/reconciliation, per-hour key quotas
+and a bounded account card count. See [ADR-009](adr/ADR-009-atomic-card-enrollment.md).
+No committed fixture key is enrolled on the runtime database.
+
+Card private keys stay in AndroidKeyStore. In-memory wallet state is cleared when its screen is disposed. Missing keys are not silently replaced;
+old cards must be disabled before replacing a lost device setup. HCE checks local
+ACTIVE status, key availability, unlock and explicit session-bound tapping consent.
+Offline HCE may not know that a remote card was blocked: the authorization server
+must check current database status before any future debit. That payment handler
+is not implemented yet. Signature completion never means payment approval.
+
+The emulator verifies Keystore API non-exportability and the actual asynchronous
+APDU engine, not physical hardware protection or RF interoperability. Two-phone
+NFC acceptance remains pending by the user's emulator-only instruction.
