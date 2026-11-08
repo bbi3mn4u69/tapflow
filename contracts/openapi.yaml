@@ -2,10 +2,10 @@
 openapi: 3.1.0
 info:
   title: TapFlow Demo API
-  version: 0.4.0
+  version: 0.5.0
   description: DEMO / NO REAL MONEY. Proprietary NFC simulator; no bank-card credentials
-    or real transfers. This is the complete v1 contract. At phase 3 authentication,
-    identity, merchant metadata, customer card/wallet and system endpoints run; later operations are implemented
+    or real transfers. This is the complete v1 contract. At phase 4 authentication,
+    identity, merchant metadata, customer card/wallet, terminal pairing/lifecycle and system endpoints run; later operations are implemented
     in the indicated x-implementation-phase. All merchant resources enforce membership
     server-side; cross-tenant resources return 404. Money is integer AUD cents; timestamps
     are UTC.
@@ -143,7 +143,7 @@ paths:
       operationId: getOpenApi
       summary: Read the v1 API contract
       description: Contract for the complete planned v1. Phase 1 system endpoints,
-        phase 2 authentication, identity and merchant metadata, and phase 3 customer cards/wallets are implemented.
+        phase 2 authentication, identity and merchant metadata, phase 3 customer cards/wallets and phase 4 terminals are implemented.
         DEMO / NO REAL MONEY.
       tags:
       - System
@@ -1030,7 +1030,7 @@ paths:
       summary: Pair a terminal with a one-time owner code
       description: Requires merchant membership matching the code. Consume code and
         pair installation atomically. Retry with the same idempotency key and installation
-        ID after response loss. DEMO / NO REAL MONEY.
+        ID after response loss. A new valid code can reconcile the same active installation and label in its merchant; disabled or foreign installations cannot be reactivated/reassigned. Maximum 100 terminals per merchant. DEMO / NO REAL MONEY.
       tags:
       - Terminals
       security:
@@ -1667,6 +1667,9 @@ components:
       - CARD_ALREADY_ENROLLED
       - ENROLLMENT_DISABLED
       - CARD_LIMIT_REACHED
+      - INSTALLATION_ALREADY_PAIRED
+      - TERMINAL_LIMIT_REACHED
+      - PAIRING_CODE_UNAVAILABLE
       - CSRF_REJECTED
       - ACCOUNT_ALREADY_EXISTS
     Status:
@@ -1682,7 +1685,7 @@ components:
           const: tapflow-api
         phase:
           type: string
-          const: card-enrollment
+          const: terminal-pairing
         demo:
           type: boolean
           const: true
@@ -2061,8 +2064,7 @@ components:
           minLength: 13
           maxLength: 13
           pattern: "^[0-9A-HJKMNP-TV-Z]{13}$"
-          description: 65 bits of entropy, shown once; expires after 10 minutes and
-            is consumed once.
+          description: 65 unpredictable bits derived with a domain-separated HMAC; revealed in memory only. Expires after exactly 10 minutes and is consumed once. Same-key creation retries reconstruct the original code without persisting plaintext. After signing-key rotation, replay may return PAIRING_CODE_UNAVAILABLE; create a new code with a new idempotency key.
         merchantId:
           "$ref": "#/components/schemas/UUID"
         expiresAt:

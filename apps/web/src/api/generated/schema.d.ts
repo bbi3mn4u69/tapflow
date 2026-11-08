@@ -73,7 +73,7 @@ export interface paths {
         };
         /**
          * Read the v1 API contract
-         * @description Contract for the complete planned v1. Phase 1 system endpoints, phase 2 authentication, identity and merchant metadata, and phase 3 customer cards/wallets are implemented. DEMO / NO REAL MONEY.
+         * @description Contract for the complete planned v1. Phase 1 system endpoints, phase 2 authentication, identity and merchant metadata, phase 3 customer cards/wallets and phase 4 terminals are implemented. DEMO / NO REAL MONEY.
          */
         get: operations["getOpenApi"];
         put?: never;
@@ -459,7 +459,7 @@ export interface paths {
         put?: never;
         /**
          * Pair a terminal with a one-time owner code
-         * @description Requires merchant membership matching the code. Consume code and pair installation atomically. Retry with the same idempotency key and installation ID after response loss. DEMO / NO REAL MONEY.
+         * @description Requires merchant membership matching the code. Consume code and pair installation atomically. Retry with the same idempotency key and installation ID after response loss. A new valid code can reconcile the same active installation and label in its merchant; disabled or foreign installations cannot be reactivated/reassigned. Maximum 100 terminals per merchant. DEMO / NO REAL MONEY.
          */
         post: operations["pairTerminal"];
         delete?: never;
@@ -651,12 +651,12 @@ export interface components {
         /** @enum {string} */
         RefundReason: "CUSTOMER_REQUEST" | "DUPLICATE" | "OTHER";
         /** @enum {string} */
-        ErrorCode: "VALIDATION_ERROR" | "UNSUPPORTED_CURRENCY" | "INVALID_CARD_PROOF" | "UNAUTHENTICATED" | "INSUFFICIENT_ROLE" | "RESOURCE_NOT_FOUND" | "IDEMPOTENCY_KEY_REUSED" | "INVALID_PAYMENT_STATE" | "REFUND_EXCEEDS_REMAINING" | "TERMINAL_DISABLED" | "PAYMENT_INTENT_EXPIRED" | "RATE_LIMITED" | "INTERNAL_ERROR" | "SERVICE_UNAVAILABLE" | "PAIRING_CODE_INVALID" | "PAIRING_CODE_EXPIRED" | "CARD_ALREADY_ENROLLED" | "ENROLLMENT_DISABLED" | "CARD_LIMIT_REACHED" | "CSRF_REJECTED" | "ACCOUNT_ALREADY_EXISTS";
+        ErrorCode: "VALIDATION_ERROR" | "UNSUPPORTED_CURRENCY" | "INVALID_CARD_PROOF" | "UNAUTHENTICATED" | "INSUFFICIENT_ROLE" | "RESOURCE_NOT_FOUND" | "IDEMPOTENCY_KEY_REUSED" | "INVALID_PAYMENT_STATE" | "REFUND_EXCEEDS_REMAINING" | "TERMINAL_DISABLED" | "PAYMENT_INTENT_EXPIRED" | "RATE_LIMITED" | "INTERNAL_ERROR" | "SERVICE_UNAVAILABLE" | "PAIRING_CODE_INVALID" | "PAIRING_CODE_EXPIRED" | "CARD_ALREADY_ENROLLED" | "ENROLLMENT_DISABLED" | "CARD_LIMIT_REACHED" | "INSTALLATION_ALREADY_PAIRED" | "TERMINAL_LIMIT_REACHED" | "PAIRING_CODE_UNAVAILABLE" | "CSRF_REJECTED" | "ACCOUNT_ALREADY_EXISTS";
         Status: {
             /** @constant */
             service: "tapflow-api";
             /** @constant */
-            phase: "card-enrollment";
+            phase: "terminal-pairing";
             /** @constant */
             demo: true;
         };
@@ -788,7 +788,7 @@ export interface components {
             labelHint?: string;
         };
         PairingCode: {
-            /** @description 65 bits of entropy, shown once; expires after 10 minutes and is consumed once. */
+            /** @description 65 unpredictable bits derived with a domain-separated HMAC; revealed in memory only. Expires after exactly 10 minutes and is consumed once. Same-key creation retries reconstruct the original code without persisting plaintext. After signing-key rotation, replay may return PAIRING_CODE_UNAVAILABLE; create a new code with a new idempotency key. */
             pairingCode: string;
             merchantId: components["schemas"]["UUID"];
             expiresAt: components["schemas"]["Timestamp"];

@@ -1753,12 +1753,14 @@ Physical gate pending: user requested emulator-only testing on 2026-11-09. The e
 
 ### Phase 4 — Terminal pairing and POS reader
 
-- [ ] Owner pairing-code API and web modal; one-time pairing, 10-minute TTL, secure code generation.
-- [ ] POS operator login, pairing, checkout UI and reader-mode state machine.
-- [ ] Implement ISO-DEP transport and SIGN_CHALLENGE request/response decoding.
+- [x] Owner pairing-code API and web modal; one-time pairing, 10-minute TTL, secure code generation.
+- [x] POS operator login, pairing, checkout UI and reader-mode state machine.
+- [x] Implement ISO-DEP transport and SIGN_CHALLENGE request/response decoding.
 - [ ] Test NFC on two physical devices; document any vendor/OS constraints.
 
 **Gate:** POS successfully receives valid signed proof from Card app and can display card ID/proof success **without logging raw keys or signatures**.
+
+Software implemented with emulator/JVM checks on 2026-11-09, following the user’s request to continue. Physical SELECT and two-phone exchange remain pending. Charge stays disabled until phase 5; debug builds expose an explicit local NFC connection test, never payment approval.
 
 ### Phase 5 — Payments and ledger
 

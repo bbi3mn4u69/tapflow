@@ -46,9 +46,13 @@ export class ApiError extends Error {
           ? 'You do not have access to this workspace.'
           : status === 404
             ? 'This workspace is unavailable.'
-            : status === 429
-              ? 'Too many attempts. Please wait before trying again.'
-              : 'We could not connect. Please try again.',
+            : status === 409
+              ? 'This request conflicts with the current setup. Refresh, or close and start a new request.'
+              : status === 410
+                ? 'This request expired. Start a new request.'
+                : status === 429
+                  ? 'Too many attempts. Please wait before trying again.'
+                  : 'We could not connect. Please try again.',
     )
   }
 }
@@ -165,19 +169,46 @@ export class SessionClient {
     this.update(null)
     this.clearCache()
   }
-  async get<T>(
+  get<T>(path: string, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T> {
+    return this.authorized(path, schema, {}, signal)
+  }
+  post<T>(
     path: string,
     schema: z.ZodType<T>,
+    body: unknown,
+    idempotency?: string,
     signal?: AbortSignal,
   ): Promise<T> {
+    return this.authorized(
+      path,
+      schema,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(idempotency ? { 'Idempotency-Key': idempotency } : {}),
+        },
+        body: JSON.stringify(body),
+      },
+      signal,
+    )
+  }
+  private async authorized<T>(
+    path: string,
+    schema: z.ZodType<T>,
+    init: RequestInit,
+    signal?: AbortSignal,
+  ): Promise<T> {
+    const send = (token: string | null) => {
+      const headers = new Headers(init.headers)
+      if (token) headers.set('Authorization', `Bearer ${token}`)
+      return this.send(path, { ...init, signal, headers })
+    }
     const before = this.token
     const generation = this.generation
     let response: Response
     try {
-      response = await this.send(path, {
-        signal,
-        headers: before ? { Authorization: `Bearer ${before}` } : {},
-      })
+      response = await send(before)
     } catch (error) {
       if (
         !(error instanceof ApiError && error.status === 401) ||
@@ -187,10 +218,7 @@ export class SessionClient {
       if (this.token === before) await this.refresh()
       if (!this.token || generation !== this.generation) throw new ApiError(401)
       try {
-        response = await this.send(path, {
-          signal,
-          headers: { Authorization: `Bearer ${this.token}` },
-        })
+        response = await send(this.token)
       } catch (retryError) {
         if (
           retryError instanceof ApiError &&

@@ -105,3 +105,171 @@ it('rejects an unknown merchant route and clears cached merchant data on logout'
     expect(cache.getQueryData(['private', 'merchant'])).toBeUndefined(),
   )
 })
+
+it('owner reveals a pairing code only in its modal and clears it on close', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input: string) => {
+      if (input.endsWith('/auth/web/refresh')) return json(session)
+      if (input.endsWith('/terminals/pairing-codes'))
+        return json(
+          {
+            pairingCode: 'ABCDEF1234567',
+            merchantId: user.memberships[0].merchantId,
+            expiresAt: new Date(Date.now() + 600000).toISOString(),
+            demo: true,
+          },
+          201,
+        )
+      if (input.includes('/terminals'))
+        return json({ items: [], nextCursor: null, demo: true })
+      return json({
+        merchantId: user.memberships[0].merchantId,
+        name: 'First store',
+        slug: 'first',
+        status: 'ACTIVE',
+        demo: true,
+      })
+    }),
+  )
+  const cache = mount(
+    `/app/merchants/${user.memberships[0].merchantId}/terminals`,
+  )
+  const trigger = await screen.findByRole('button', {
+    name: 'Create pairing code',
+  })
+  trigger.focus()
+  fireEvent.click(trigger)
+  expect(await screen.findByRole('dialog')).toBeVisible()
+  expect(await screen.findByText('ABCDEF1234567')).toBeVisible()
+  expect(
+    JSON.stringify(
+      cache
+        .getQueryCache()
+        .getAll()
+        .map((q) => q.state.data),
+    ),
+  ).not.toContain('ABCDEF1234567')
+  fireEvent.click(screen.getByRole('button', { name: 'Close pairing code' }))
+  await waitFor(() =>
+    expect(screen.queryByText('ABCDEF1234567')).not.toBeInTheDocument(),
+  )
+  expect(trigger).toHaveFocus()
+  expect(localStorage.length).toBe(0)
+})
+
+it('operator can inspect terminals without seeing owner pairing actions', async () => {
+  const operatorSession = {
+    ...session,
+    user: {
+      ...user,
+      memberships: [{ ...user.memberships[0], role: 'OPERATOR' }],
+    },
+  }
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input: string) => {
+      if (input.endsWith('/auth/web/refresh')) return json(operatorSession)
+      if (input.includes('/terminals'))
+        return json({ items: [], nextCursor: null, demo: true })
+      return json({
+        merchantId: user.memberships[0].merchantId,
+        name: 'First store',
+        slug: 'first',
+        status: 'ACTIVE',
+        demo: true,
+      })
+    }),
+  )
+  mount(`/app/merchants/${user.memberships[0].merchantId}/terminals`)
+  expect(await screen.findByText('No terminals paired yet.')).toBeVisible()
+  expect(
+    screen.queryByRole('button', { name: 'Create pairing code' }),
+  ).not.toBeInTheDocument()
+})
+
+it('pairing-code retry keeps its idempotency key after a lost response', async () => {
+  const keys: (string | null)[] = []
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input: string, init: RequestInit) => {
+      if (input.endsWith('/auth/web/refresh')) return json(session)
+      if (input.endsWith('/terminals/pairing-codes')) {
+        keys.push(new Headers(init.headers).get('Idempotency-Key'))
+        if (keys.length === 1) throw new TypeError('response lost')
+        return json(
+          {
+            pairingCode: 'ABCDEF1234567',
+            merchantId: user.memberships[0].merchantId,
+            expiresAt: new Date(Date.now() + 600000).toISOString(),
+            demo: true,
+          },
+          201,
+        )
+      }
+      if (input.includes('/terminals'))
+        return json({ items: [], nextCursor: null, demo: true })
+      return json({
+        merchantId: user.memberships[0].merchantId,
+        name: 'First store',
+        slug: 'first',
+        status: 'ACTIVE',
+        demo: true,
+      })
+    }),
+  )
+  mount(`/app/merchants/${user.memberships[0].merchantId}/terminals`)
+  fireEvent.click(
+    await screen.findByRole('button', { name: 'Create pairing code' }),
+  )
+  fireEvent.click(
+    await screen.findByRole('button', { name: 'Retry code request' }),
+  )
+  expect(await screen.findByText('ABCDEF1234567')).toBeVisible()
+  expect(keys).toHaveLength(2)
+  expect(keys[0]).toMatch(/^[0-9a-f-]{36}$/)
+  expect(keys[1]).toBe(keys[0])
+})
+
+it('pairing countdown starts from response time instead of stale modal-open time', async () => {
+  let now = 1800000000000
+  const clock = vi.spyOn(Date, 'now').mockImplementation(() => now)
+  try {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: string) => {
+        if (input.endsWith('/auth/web/refresh')) return json(session)
+        if (input.endsWith('/terminals/pairing-codes')) {
+          now += 10000
+          return json(
+            {
+              pairingCode: 'ABCDEF1234567',
+              merchantId: user.memberships[0].merchantId,
+              expiresAt: new Date(now + 600000).toISOString(),
+              demo: true,
+            },
+            201,
+          )
+        }
+        if (input.includes('/terminals'))
+          return json({ items: [], nextCursor: null, demo: true })
+        return json({
+          merchantId: user.memberships[0].merchantId,
+          name: 'First store',
+          slug: 'first',
+          status: 'ACTIVE',
+          demo: true,
+        })
+      }),
+    )
+    mount(`/app/merchants/${user.memberships[0].merchantId}/terminals`)
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Create pairing code' }),
+    )
+    expect(await screen.findByRole('timer')).toHaveTextContent(
+      'Expires in 10:00',
+    )
+  } finally {
+    clock.mockRestore()
+  }
+})

@@ -51,3 +51,23 @@ is not implemented yet. Signature completion never means payment approval.
 The emulator verifies Keystore API non-exportability and the actual asynchronous
 APDU engine, not physical hardware protection or RF interoperability. Two-phone
 NFC acceptance remains pending by the user's emulator-only instruction.
+
+## Terminal pairing — phase 4
+
+Owner role and active merchant membership are enforced in the API. Code hashes,
+consumption, terminal installation uniqueness, audit and replay outcomes are
+transactional. Known codes from a foreign merchant cannot be burned by a nonmember.
+Retries and new valid codes cannot revive disabled installations. Terminal listing
+and disable queries include the merchant ID; pagination is scoped and bounded.
+Raw codes do not appear in server logs or idempotency JSON. Purpose-separated HMAC
+reconstruction and signing-key rotation behavior are recorded in
+[ADR-010](adr/ADR-010-pairing-and-pos-reader.md).
+
+The portal keeps reveals in component memory and restores keyboard focus on close.
+POS pending codes use a separate AES-GCM Keystore key and are scoped to the account;
+other accounts cannot read them. Server terminal status is rechecked before an
+explicit reader diagnostic. Signing or decoding a local diagnostic response does
+not prove server verification, payment authorization or a debit. The Charge path
+is disabled. Reader mode is foreground-only; I/O closes on cancellation, and late
+results/duplicate tags cannot complete a new session. Physical timing, vendor
+behavior and NFC routing remain unverified until the two-phone hardware gate.

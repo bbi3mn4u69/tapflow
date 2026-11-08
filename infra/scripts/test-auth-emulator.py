@@ -79,7 +79,7 @@ def main():
             f"-PtapflowApiBaseUrl=http://10.0.2.2:{api_port}/api/v1",
             "-Pandroid.testInstrumentationRunnerArguments.tapflowLiveAuth=true", "--no-parallel", "--console=plain",
         ], check=True)
-        print("Live authentication, card enrollment/wallet/disable and Keystore/HCE harness checks passed against disposable PostgreSQL.")
+        print("Live authentication, card enrollment, POS pairing/restore/disable, encrypted stores and NFC engine checks passed against disposable PostgreSQL.")
     finally:
         if api is not None and api.poll() is None:
             api.terminate()

@@ -12,6 +12,11 @@ import org.json.JSONObject
 class AuthFailure(val status: Int) :
     Exception(
         when (status) {
+            400 -> "The request was not accepted. Check the code and details."
+            404 -> "This resource or workspace is unavailable."
+            409 ->
+                "This request conflicts with existing setup. Use the original request or refresh its status."
+            410 -> "This request expired. Start again with a fresh owner code."
             401 -> "Your session ended. Sign in again."
             403 -> "This account cannot access this app."
             429 -> "Too many attempts. Please wait before trying again."

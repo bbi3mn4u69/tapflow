@@ -30,12 +30,12 @@ class ApplicationTest {
     }
 
     @Test
-    fun `status identifies the card-enrollment phase`() = testApplication {
+    fun `status identifies the terminal-pairing phase`() = testApplication {
         application { module() }
         val response = client.get("/api/v1/status")
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals(
-            "card-enrollment",
+            "terminal-pairing",
             Json.parseToJsonElement(response.bodyAsText())
                 .jsonObject["phase"]
                 ?.jsonPrimitive

@@ -178,3 +178,45 @@ it('ends session restoration with a recoverable error when the connection stalls
     vi.useRealTimers()
   }
 })
+
+it('retries an unauthorized mutation with the same body and idempotency key', async () => {
+  const calls: { key: string | null; body: BodyInit | null | undefined }[] = []
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (input: string, init: RequestInit) => {
+      if (input.includes('/auth/web/'))
+        return json({
+          accessToken: input.endsWith('/refresh') ? 'new' : 'old',
+          expiresInSeconds: 900,
+          user,
+          demo: true,
+        })
+      const headers = new Headers(init.headers)
+      calls.push({ key: headers.get('Idempotency-Key'), body: init.body })
+      expect(headers.get('X-TapFlow-CSRF')).toBe('1')
+      return headers.get('Authorization') === 'Bearer new'
+        ? json({ demo: true })
+        : json({}, 401)
+    }),
+  )
+  const client = new SessionClient()
+  await client.login('owner@example.test', 'test-only-password')
+  await expect(
+    client.post(
+      '/mutate',
+      z.object({ demo: z.literal(true) }),
+      { labelHint: 'Counter' },
+      'd685a910-89cd-422d-b1dc-15368215fd66',
+    ),
+  ).resolves.toEqual({ demo: true })
+  expect(calls).toEqual([
+    {
+      key: 'd685a910-89cd-422d-b1dc-15368215fd66',
+      body: '{"labelHint":"Counter"}',
+    },
+    {
+      key: 'd685a910-89cd-422d-b1dc-15368215fd66',
+      body: '{"labelHint":"Counter"}',
+    },
+  ])
+})

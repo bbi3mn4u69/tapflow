@@ -6,7 +6,7 @@ Two Android apps exchange proprietary APDUs; a Kotlin/Ktor API will verify devic
 
 ## Current milestone
 
-Phase 3 software: the Android Card app creates a non-exportable P-256 key, enrolls its public key, loads its one-time funded demo wallet and disables owned cards. The API applies atomic funding, scoped idempotency and customer isolation. Shared APDU codecs, strict signature verification and the asynchronous HCE service have emulator coverage. Authentication remains available across web and both Android apps. Runtime development uses Railway; tests use isolated PostgreSQL. **Physical NFC acceptance is pending** by user choice; payments, terminal pairing, POS reader and refunds remain later work. See [progress](docs/progress.md) and the governing [specification](overall.md).
+Phase 4 software: owners create one-time pairing codes and manage terminals in the merchant portal. The Android POS pairs securely, restores its terminal, checks status and validates exact AUD cents. Shared reader/session code implements proprietary SELECT + SIGN with expiry/cancellation guards. The existing Android Card enrolls device-held keys and loads its one-time funded demo wallet. **Physical NFC acceptance remains pending** by user choice. Charge stays disabled until phase 5 implements server-backed payment intents/authorization; a debug-only connection test is explicitly labeled as no payment. Runtime development uses Railway; verification uses disposable PostgreSQL. See [progress](docs/progress.md) and the governing [specification](overall.md).
 
 ## Run locally
 
@@ -24,7 +24,7 @@ corepack pnpm install --frozen-lockfile
 corepack pnpm dev
 ```
 
-Open [localhost:5173](http://localhost:5173/login) and sign in with your seeded owner/operator account. `/health/live` confirms the process is running; `/health/ready` returns 200 only when PostgreSQL is reachable and migrations validate, otherwise 503. [OpenAPI](http://localhost:8080/api/v1/openapi.yaml) describes the full planned v1; `x-implementation-phase` identifies which milestone implements each operation. System, authentication, identity, merchant metadata and customer card/wallet endpoints run in phase 3.
+Open [localhost:5173](http://localhost:5173/login) and sign in with your seeded owner/operator account. `/health/live` confirms the process is running; `/health/ready` returns 200 only when PostgreSQL is reachable and migrations validate, otherwise 503. [OpenAPI](http://localhost:8080/api/v1/openapi.yaml) describes the full planned v1; `x-implementation-phase` identifies which milestone implements each operation. System, authentication, identity, merchant metadata and customer card/wallet and terminal pairing/lifecycle endpoints run in phase 4.
 
 Set three distinct `SEED_*_PASSWORD` values locally, then run `./infra/scripts/seed-demo.sh` to create `owner@example.test`, `operator@example.test`, `customer@example.test` and one demo merchant. Seed reruns preserve existing passwords and create no device keys or funded wallets. Passwords never belong in Git or command-line arguments.
 
@@ -57,7 +57,7 @@ See [testing](docs/testing.md) for scope and hardware limitations. GitHub Action
 ```text
 apps/
   android-card/          Customer Compose wallet, device enrollment and HCE service
-  android-pos/           Merchant Compose app; reader implementation follows in phase 4
+  android-pos/           Merchant pairing, checkout entry and foreground ISO-DEP reader
   web/                   React + TypeScript + Vite merchant workspace
 packages/android-auth/    Shared native sign-in, encrypted storage and session UI
 packages/protocol-kotlin/ Pure Kotlin/JVM APDU codecs, session state and verification

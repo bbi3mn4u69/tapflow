@@ -153,3 +153,41 @@ If a stored key is lost, disable the old card, then choose replacement setup. No
 private key recovery, wallet transfer or automatic replacement is performed.
 See [protocol](nfc-protocol.md) and [testing](testing.md) for exact verification
 scope. The physical NFC gate remains pending; no POS reader is implemented yet.
+
+## Terminal pairing and POS — phase 4
+
+In the portal choose **Terminals**. Owners can create a one-time code or confirm
+terminal disabling; operators can inspect status only. Keep the reveal dialog
+open while pairing. It counts down from server expiry, lasts exactly ten minutes,
+and clears the raw code from the UI when closed. A failed reveal retries its saved
+idempotency key, without extending expiry. Codes never enter browser storage or
+the query cache. Pairing attempts are limited to ten/minute/IP and user.
+
+Sign in to Android POS with a member of that merchant, enter the 13-character code
+and a terminal name, then pair. The app persists its installation ID and encrypts
+pending code/request data with AndroidKeyStore AES-GCM before sending HTTP. Retry
+reuses that setup after recreation or response loss. **Clear pending pairing**
+removes only local unfinished setup; it never unregisters a server terminal.
+A fresh owner code can reconcile the same active installation and label.
+
+This build supports one merchant pairing per POS installation. Disabled or foreign
+installations cannot be reactivated/reassigned by another code. For deliberate
+replacement, an owner can disable the old terminal and authorize a newly installed
+or cleared POS app with a fresh code; clearing app storage also signs the operator
+out. The old terminal/history remain. Each merchant is limited to 100 terminal
+records including disabled records; larger demo fleets need an explicit policy
+change before lifting that bound.
+
+Checkout validates integer AUD cents but **Charge is disabled** until phase 5.
+Debug builds alone expose **Test NFC connection** on an active, freshly verified
+terminal with NFC enabled and a valid amount. This creates a local 90-second test
+challenge, not a server intent, and sends only the proprietary SELECT/SIGN APDUs.
+It never submits payment authorization. An emulator reports missing NFC and keeps
+that action disabled. Backgrounding/cancelling stops reader mode and pending work.
+Physical SELECT and the two-phone exchange remain pending by user choice.
+
+Pairing-code reconstruction uses a domain-separated HMAC with the existing random
+JWT signing secret. After key rotation a creation retry can return
+PAIRING_CODE_UNAVAILABLE; close the dialog and create a new code/request. Previously
+revealed codes still match their stored hash until consumed or expired. See
+[ADR-010](adr/ADR-010-pairing-and-pos-reader.md) for the replay/storage design.

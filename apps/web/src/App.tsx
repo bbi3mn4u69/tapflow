@@ -14,10 +14,13 @@ import {
   Route,
   Routes,
   useNavigate,
+  useLocation,
   useParams,
 } from 'react-router'
 import { z } from 'zod'
 import { ApiError, merchantSchema, SessionClient } from './api/session'
+
+import Terminals from './features/terminals/Terminals'
 
 const SessionContext = createContext<SessionClient | null>(null)
 function useSession() {
@@ -81,6 +84,10 @@ export default function App() {
           <Route path="/app" element={<Workspace />} />
           <Route
             path="/app/merchants/:merchantId/overview"
+            element={<Workspace />}
+          />
+          <Route
+            path="/app/merchants/:merchantId/terminals"
             element={<Workspace />}
           />
           <Route path="/403" element={<Workspace denied />} />
@@ -284,6 +291,7 @@ function Login() {
   )
 }
 function Workspace({ denied = false }: { denied?: boolean }) {
+  const terminalPage = useLocation().pathname.endsWith('/terminals')
   const session = useSession()
   const { merchantId } = useParams()
   const navigate = useNavigate()
@@ -334,11 +342,23 @@ function Workspace({ denied = false }: { denied?: boolean }) {
         <Brand />
         <div className="workspace-label">MERCHANT WORKSPACE</div>
         <nav>
-          <Link className="current-section" to="/app">
+          <Link
+            className={!terminalPage ? 'current-section' : undefined}
+            to="/app"
+          >
             Overview
           </Link>
           <span className="nav-pending">Transactions</span>
-          <span className="nav-pending">Terminals</span>
+          {membership ? (
+            <Link
+              className={terminalPage ? 'current-section' : undefined}
+              to={`/app/merchants/${membership.merchantId}/terminals`}
+            >
+              Terminals
+            </Link>
+          ) : (
+            <span className="nav-pending">Terminals</span>
+          )}
           {membership?.role === 'OWNER' ? (
             <span className="nav-pending">Audit log</span>
           ) : null}
@@ -435,61 +455,87 @@ function Workspace({ denied = false }: { denied?: boolean }) {
                   {membership.role === 'OWNER' ? 'Owner' : 'Operator'}
                 </span>
               </div>
-              <p className="intro">
-                You’re connected. This is your space to manage the TapFlow demo.
-              </p>
-              <section className="connection-panel">
-                <div className="connection-copy">
-                  <p className="eyebrow">READY FOR WHAT’S NEXT</p>
-                  <h2>A workspace for your team.</h2>
-                  <p>
-                    Your merchant access is verified. Payments and terminal
-                    pairing will be available in a later build. Customer device
-                    enrollment is now available in the Android Card app.
+              <nav className="workspace-tabs" aria-label="Merchant pages">
+                <Link to={`/app/merchants/${merchantId}/overview`}>
+                  Overview
+                </Link>
+                <Link to={`/app/merchants/${merchantId}/terminals`}>
+                  Terminals
+                </Link>
+              </nav>
+              {terminalPage ? (
+                <Terminals
+                  key={merchantId}
+                  client={session.client}
+                  merchantId={merchantId!}
+                  owner={membership.role === 'OWNER'}
+                />
+              ) : (
+                <>
+                  <p className="intro">
+                    You’re connected. This is your space to manage the TapFlow
+                    demo.
                   </p>
-                  <div className="connection-status">
-                    <span className="status-dot online" aria-hidden="true" />
-                    Workspace connected
-                  </div>
-                </div>
-                <div className="tap-illustration" aria-hidden="true">
-                  <div className="tap-ring ring-inner" />
-                  <div className="demo-card">
-                    <span>TAPFLOW</span>
-                    <span className="card-symbol">)))</span>
-                    <div>
-                      Your next connection.<span>SIMULATED VALUE ONLY</span>
+                  <section className="connection-panel">
+                    <div className="connection-copy">
+                      <p className="eyebrow">READY FOR WHAT’S NEXT</p>
+                      <h2>A workspace for your team.</h2>
+                      <p>
+                        Your merchant access is verified. Payments will be
+                        available in a later build. Pair your POS from
+                        Terminals. Customer device enrollment is now available
+                        in the Android Card app.
+                      </p>
+                      <div className="connection-status">
+                        <span
+                          className="status-dot online"
+                          aria-hidden="true"
+                        />
+                        Workspace connected
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </section>
-              <section className="next-section">
-                <h2>Before your first demo sale</h2>
-                <ol className="steps">
-                  <li>
-                    <span className="step-number">01</span>
-                    <h3>Customer card</h3>
-                    <p>
-                      Sign in to the Android Card app with a customer account.
-                    </p>
-                  </li>
-                  <li>
-                    <span className="step-number">02</span>
-                    <h3>Merchant terminal</h3>
-                    <p>
-                      Sign in to the Android POS app with a merchant account.
-                    </p>
-                  </li>
-                  <li>
-                    <span className="step-number">03</span>
-                    <h3>Stay in the loop</h3>
-                    <p>
-                      Use the merchant selector to move between your authorised
-                      workspaces.
-                    </p>
-                  </li>
-                </ol>
-              </section>
+                    <div className="tap-illustration" aria-hidden="true">
+                      <div className="tap-ring ring-inner" />
+                      <div className="demo-card">
+                        <span>TAPFLOW</span>
+                        <span className="card-symbol">)))</span>
+                        <div>
+                          Your next connection.<span>SIMULATED VALUE ONLY</span>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                  <section className="next-section">
+                    <h2>Before your first demo sale</h2>
+                    <ol className="steps">
+                      <li>
+                        <span className="step-number">01</span>
+                        <h3>Customer card</h3>
+                        <p>
+                          Sign in to the Android Card app with a customer
+                          account.
+                        </p>
+                      </li>
+                      <li>
+                        <span className="step-number">02</span>
+                        <h3>Merchant terminal</h3>
+                        <p>
+                          Sign in to the Android POS app with a merchant
+                          account.
+                        </p>
+                      </li>
+                      <li>
+                        <span className="step-number">03</span>
+                        <h3>Stay in the loop</h3>
+                        <p>
+                          Use the merchant selector to move between your
+                          authorised workspaces.
+                        </p>
+                      </li>
+                    </ol>
+                  </section>
+                </>
+              )}
             </>
           )}
           <footer>

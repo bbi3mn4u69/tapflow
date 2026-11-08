@@ -56,13 +56,35 @@ physical NFC be recorded as pending; the complete phase gate is therefore open.
   provenance. Runtime Railway credentials and data are preserved.
 
 Software checks are recorded in [testing](testing.md). Pending: SELECT on a
-supported physical phone; then phase 4 pairing/POS and the two-phone RF exchange.
+supported physical phone and the phase 4 two-phone RF exchange. Pairing/POS software
+continued below at the user’s request.
 An emulator engine response does not satisfy those physical gates.
+
+## Phase 4 — Terminal pairing and POS reader software
+
+Implemented and verified on 2026-11-09 after the user requested the next phase.
+The phase 3 physical gate and phase 4 two-phone exchange remain pending.
+
+- Owner-only 65-bit, ten-minute code creation; scoped idempotency without raw code
+  storage in replay records, atomic code consumption/terminal/audit and safe retry.
+- Tenant-isolated terminal pages and repeatable owner disabling; unique installation
+  reconciliation, disabled/foreign installation rejection and 100-record merchant cap.
+- Portal terminal navigation, owner reveal/countdown modal, operator read-only view,
+  confirmed disabling, no code in query caches/browser storage, close/expiry behavior
+  and keyboard focus restoration. Native dialog and reduced-motion layouts reviewed.
+- POS encrypted pending setup, stable installation/idempotency, pairing restoration,
+  fresh terminal status, exact cent input and honest NFC diagnostics on the emulator.
+- Shared SELECT/SIGN reader, foreground-only ISO-DEP I/O, duplicate/stale response
+  guards, same-challenge retry, expiry, and cancellation while status is still loading.
+- Charge remains disabled; debug-only local connection tests never create a payment
+  intent or claim server signature verification/authorization.
+
+See [testing](testing.md) and [ADR-010](adr/ADR-010-pairing-and-pos-reader.md).
 
 ## Remaining ordered work
 
 1. Finish the phase 3 physical NFC SELECT acceptance gate when hardware is available.
-2. Phase 4: terminal pairing, POS reader and physical proof exchange.
+2. Finish phase 4 physical proof exchange and vendor/OS checks when two phones are available.
 3. Phase 5: atomic payments, ledger, idempotency, recovery and concurrency tests.
 4. Phase 6: full merchant portal, refunds, audit and browser E2E.
 5. Phase 7: containerized API/web, production topology, operations, security hardening and recorded demo.

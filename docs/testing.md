@@ -94,3 +94,43 @@ unlock enforcement on physical hardware, hardware key protection, SELECT on a
 physical phone or two-phone ISO-DEP interoperability. Those acceptance checks are
 pending by the user's emulator-only instruction. The payment authorizer/POS reader
 are not implemented; a valid signature is not approval or a successful payment.
+
+## Phase 4 software checks — 2026-11-09
+
+- Backend: 67 tests on disposable PostgreSQL, including 12 terminal tests. New
+  coverage checks owner/operator/tenant boundaries, code entropy format and exact
+  ten-minute expiry, plaintext-free replay records, concurrent identical pairing,
+  consumed/unknown/expired codes, active-installation reconciliation, disabled
+  installation rejection, account cap, keyset pagination ties, audit-failure
+  rollback and signing-key rotation. Expiry is checked again before consumption,
+  including a clock crossing the boundary during pairing.
+- Protocol: 12 JVM tests. The reader sends exactly SELECT then SIGN against the
+  independent signed fixture, rejects incompatible SELECT/malformed proof and
+  guards duplicate claims, same-challenge retries, expiry and stale completion.
+- Android: 13 instrumentation tests without skips (8 Card, 5 POS) on the API 36
+  phone AVD. POS pairs against the disposable API using a synthetic owner code,
+  restores after activity recreation, validates A$25.00 exactly, observes owner
+  disabling, checks encrypted pending setup/account isolation and cancellation
+  while terminal status is still loading. Actual RF exchange is not simulated.
+- Both debug and unsigned release APK builds and Card/POS/shared-auth debug lint
+  pass. Upstream dependency/lint notices remain documented rather than suppressed.
+- Portal: 18 tests, contract/types, typecheck, ESLint, production build and formatting.
+  Coverage includes owner reveal/close/focus restoration, operator read-only view,
+  same-key retry after response loss, refreshed countdown time and authenticated
+  POST retry preserving the original body/idempotency key.
+- Native [POS screenshot](screenshots/phase4-pos-api36.png) was captured from the
+  live disposable fixture and visually inspected. The portal/native layouts retain
+  explicit DEMO / NO REAL MONEY and disabled payment controls.
+- Portal visual checks used a temporary QA tab with synthetic fetch responses,
+  not Railway pairing data. Native dialogs were inspected at 1440×1000 and
+  360×800 with reduced motion: centered, readable, visible demo notice, no horizontal
+  overflow, close clears the code and restores trigger focus, no localStorage
+  entries or application JavaScript errors. The temporary tab was closed afterward.
+  These layout checks are not claimed as a full browser/API E2E test.
+
+The phase 3 physical SELECT gate and phase 4 two-phone exchange/vendor constraints
+remain pending by user choice. Reader timeout/real tag loss, OEM routing, physical
+Keystore properties and hardware unlock behavior need two NFC-capable phones.
+The debug connection test only parses a card response; server signature verification
+and payment decisions arrive in phase 5. No debit, payment success or full NFC
+acceptance is claimed. Android Studio sync remains untested with the older IDE.
