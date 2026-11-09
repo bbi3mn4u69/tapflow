@@ -1,6 +1,6 @@
 # Development setup
 
-DEMO / NO REAL MONEY. Phase 2 supplies sign-in, refresh sessions and merchant access. NFC, card enrollment and payments follow later.
+DEMO / NO REAL MONEY. Software through phase 6 includes sign-in, card enrollment, terminal pairing, payments, merchant reporting and refunds. Physical NFC and production deployment acceptance remain pending.
 
 ## Toolchain
 
@@ -71,10 +71,11 @@ Vite proxies `/api` to the API on port 8080. `API_HOST`/`API_PORT` configure the
 
 - `GET /health/live`: 200 while the process is running, independent of database health.
 - `GET /health/ready`: 200 only when the database responds and its migration history matches the versions/checksums validated at startup; otherwise 503.
-- `GET /api/v1/status`: implementation phase `payments`.
+- `GET /api/v1/status`: implementation phase `merchant-operations`.
 - Web and mobile login/refresh/logout, `GET /api/v1/me`, and merchant metadata `GET /api/v1/merchants/{merchantId}`.
 - Customer card enrollment/disable, wallet/activity and terminal pairing/list/disable.
 - Payment create/authorise/status/cancel and merchant payment list/detail.
+- Owner refunds/audit and member dashboard reporting.
 - Optional customer registration only when its explicit environment flag is enabled.
 - `GET /api/v1/openapi.yaml`: complete planned v1 contract, with implementation phase annotations.
 
@@ -213,6 +214,46 @@ Merchant members can read `GET /api/v1/merchants/{merchantId}/payments` and
 `.../payments/{paymentId}`. List supports status, a 1–100 limit and keyset cursor;
 UTC dates are inclusive `from`/exclusive `to` with a maximum 366-day range (default
 last 30 days). No raw signature is returned. Full portal reporting/refunds are
-phase 6 work. The emulator fixture script uses a disposable database and test-only
+implemented in phase 6 below. The emulator fixture script uses a disposable database and test-only
 Keystore signer to verify an interrupted payment without claiming NFC acceptance.
 See [ADR-011](adr/ADR-011-payments-and-recovery.md).
+
+## Merchant reports and refunds — phase 6
+
+Use **Overview**, **Transactions**, **Terminals**, **Audit log** (owner) and
+**Settings**. Overview shows approved count, gross, refunded and net demo value,
+daily approved counts with an accessible data table, and recent authorisations.
+Calendar filters are UTC with a maximum 366-day range. Receipt/event times are
+shown in Melbourne. Overview groups by authorisation time and includes all later
+refunds; Transactions filters by creation time. Shareable filter/cursor values live
+in the URL. Read failures show a retry; no static payments or fabricated totals
+are supplied by the portal.
+
+Open a transaction to inspect its demo receipt and refund history. Owners can
+choose **Refund**, enter an exact AUD amount up to the remaining refundable value,
+select a reason and confirm. For A$25, refund A$10 then A$15: the status becomes
+PARTIAL then FULL and the original demo wallet returns to A$100. Operators can
+view receipts but cannot submit refunds or read audit events; the API enforces it.
+
+If a refund outcome is unknown, use **Retry saved refund**. Reloading this same tab
+retains the original amount/reason/key in account-scoped sessionStorage. Do not
+close the tab, clear storage or issue another refund elsewhere until history is
+reconciled. A permission error during recovery does not prove the earlier refund
+failed. Restore owner access and recover the saved request. Never clear an unknown
+request to make the refund button available.
+
+To run the full browser gate, first stop any API using `build/install` JARs (the
+fixture rebuilds that distribution), then from the repository root:
+
+```sh
+npx --yes pnpm@9.12.3 --dir apps/web install --frozen-lockfile
+npx --yes pnpm@9.12.3 --dir apps/web exec playwright install chromium
+python3 infra/scripts/test-web.py
+```
+
+Set JAVA_HOME to JDK 21 and ANDROID_HOME as above; Docker must be running. CI uses
+`playwright install --with-deps chromium`. The launcher starts its own loopback
+API/Vite ports, random-secret PostgreSQL container and synthetic accounts. It
+never loads `.env` or mutates Railway. Do not point the Playwright runner at the
+runtime database. Restart the normal API after fixture runs. The emulator runner
+uses the same disposable lifecycle and still requires exactly one emulator.

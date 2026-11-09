@@ -867,3 +867,301 @@ select {
     align-items: flex-start;
   }
 }
+
+.report-section {
+  display: grid;
+  gap: 1.5rem;
+  min-width: 0;
+}
+.report-section h2,
+.report-section h3 {
+  margin: 0;
+  letter-spacing: -0.035em;
+}
+.section-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.section-title > span,
+.report-note,
+.chart-caption {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.report-filters {
+  display: flex;
+  gap: 1rem;
+  align-items: end;
+  flex-wrap: wrap;
+  padding: 1.25rem 0;
+  border-block: 1px solid var(--line);
+}
+.report-filters label {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.report-filters input,
+.report-filters select,
+.pair-dialog select {
+  font: inherit;
+  background: #fff;
+  color: inherit;
+  border: 1px solid #becbc3;
+  border-radius: 0.5rem;
+  padding: 0.7rem;
+  min-height: 44px;
+  max-width: 100%;
+}
+.period-buttons {
+  display: flex;
+  gap: 0.6rem;
+  align-self: center;
+}
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  overflow: hidden;
+  background: #fff;
+}
+.kpi {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1.4rem;
+  border-right: 1px solid var(--line);
+}
+.kpi:last-child {
+  border: 0;
+}
+.kpi > span {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.kpi > strong {
+  overflow-wrap: anywhere;
+  font-size: clamp(1.5rem, 2.4vw, 2.1rem);
+  letter-spacing: -0.055em;
+  font-weight: 550;
+  font-variant-numeric: tabular-nums;
+}
+.daily-chart {
+  display: grid;
+  gap: 1rem;
+  background: #eef3ee;
+  padding: 1.5rem;
+  border-radius: 0.8rem;
+}
+.chart-bars {
+  height: 160px;
+  display: flex;
+  align-items: end;
+  gap: clamp(1px, 0.4vw, 8px);
+  border-bottom: 1px solid #adc4b8;
+}
+.chart-bars > div {
+  flex: 1;
+  background: #347766;
+  border-radius: 3px 3px 0 0;
+  min-width: 0;
+}
+.chart-caption {
+  margin: 0;
+}
+.daily-chart summary {
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.table-scroll {
+  min-width: 0;
+  overflow: auto;
+}
+.report-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.85rem;
+  text-align: left;
+}
+.report-table caption {
+  text-align: left;
+  color: var(--muted);
+  padding: 0 0 1rem;
+  font-size: 0.8rem;
+}
+.report-table th {
+  font-weight: 500;
+  color: var(--muted);
+  padding: 0.8rem;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.report-table td {
+  padding: 1rem 0.8rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.report-table td small {
+  display: block;
+  color: var(--muted);
+  margin-top: 0.35rem;
+  font-size: 0.7rem;
+}
+.receipt-link {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  overflow-wrap: anywhere;
+}
+.payment-badge {
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  border: 1px solid #cad4cc;
+  border-radius: 1rem;
+  padding: 0.35rem 0.65rem;
+  display: inline-block;
+  white-space: nowrap;
+}
+.payment-badge.approved {
+  background: #e3eee6;
+  color: #24543d;
+}
+.payment-badge.declined {
+  background: #faeee8;
+  color: #873d23;
+}
+.receipt-panel {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+}
+.receipt-amount {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  letter-spacing: -0.06em;
+  font-weight: 550;
+}
+.receipt-fields {
+  display: grid;
+  grid-template-columns: minmax(100px, 1fr) minmax(0, 3fr);
+  gap: 1rem;
+  font-size: 0.9rem;
+}
+.receipt-fields dt {
+  color: var(--muted);
+}
+.receipt-fields dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.refund-history {
+  list-style: none;
+  padding: 0;
+}
+.refund-history li {
+  display: grid;
+  gap: 0.4rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.refund-history small {
+  color: var(--muted);
+}
+.report-loading {
+  padding: 3rem 1rem;
+  background: #edf0eb;
+  border-radius: 0.8rem;
+}
+@media (max-width: 1050px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .kpi:nth-child(2) {
+    border-right: 0;
+  }
+  .kpi:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--line);
+  }
+}
+@media (max-width: 600px) {
+  .report-filters label {
+    flex: 1;
+    min-width: 125px;
+  }
+  .period-buttons {
+    width: 100%;
+  }
+  .report-table:not([aria-label]) thead {
+    display: none;
+  }
+  .report-table:not([aria-label]) tbody {
+    display: grid;
+    gap: 1rem;
+  }
+  .report-table:not([aria-label]) tr {
+    display: grid;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 0.6rem;
+  }
+  .report-table:not([aria-label]) td {
+    display: block;
+    padding: 0.35rem 0;
+    border: 0;
+  }
+  .report-table:not([aria-label]) td:before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-bottom: 0.2rem;
+  }
+  .kpi {
+    padding: 1rem;
+  }
+  .daily-chart {
+    padding: 1rem;
+  }
+  .workspace-tabs {
+    flex-wrap: wrap;
+  }
+  .receipt-fields {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+  .receipt-fields dd {
+    margin-bottom: 0.6rem;
+  }
+}
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.workspace-tabs a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+}
+@media (min-width: 761px) {
+  .sidebar nav {
+    display: grid;
+    gap: 4px;
+  }
+  .sidebar nav a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.8rem;
+    border-radius: 0.7rem;
+    font-size: 0.83rem;
+  }
+}

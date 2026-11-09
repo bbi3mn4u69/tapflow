@@ -1779,12 +1779,17 @@ See `docs/testing.md` and `docs/adr/ADR-011-payments-and-recovery.md`.
 
 ### Phase 6 — Merchant portal and refunds
 
-- [ ] Overview KPIs/charts, payment list/detail/filter/pagination, responsive states.
-- [ ] Owner-only partial/full refund API + atomic credit ledger + refund modal.
-- [ ] Audit event list; terminal disable workflow; demo receipt presentation.
-- [ ] Frontend unit tests and Playwright E2E with seeded fixtures.
+- [x] Overview KPIs/charts, payment list/detail/filter/pagination, responsive states.
+- [x] Owner-only partial/full refund API + atomic credit ledger + refund modal.
+- [x] Audit event list; terminal disable workflow; demo receipt presentation.
+- [x] Frontend unit tests and Playwright E2E with seeded fixtures.
 
 **Gate:** Owner can refund A$10 then A$15; balance returns to A$100; portal shows `FULL`, and operator cannot refund.
+
+Software gate verified on 2026-11-10 (Australia/Melbourne) against disposable
+PostgreSQL and real Chromium/API flows. Lost committed refund responses recover
+through same-tab reload/retry without another credit. Physical NFC acceptance
+remains pending. See `docs/testing.md` and ADR-012.
 
 ### Phase 7 — Deployment, hardening, and demo assets
 

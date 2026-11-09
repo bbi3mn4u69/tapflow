@@ -25,6 +25,23 @@ jobs:
       - run: ./gradlew help :packages:protocol-kotlin:test :services:payment-api:test
       - name: Check disposable payment fault proxy
         run: python3 infra/scripts/payment_test_proxy.py
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - run: pnpm --dir apps/web install --frozen-lockfile
+      - run: pnpm --dir apps/web exec playwright install --with-deps chromium
+      - name: Verify browser payments and refunds on disposable PostgreSQL
+        run: python3 infra/scripts/test-web.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tapflow-browser-evidence
+          path: apps/web/test-results/
       - name: Validate development Compose
         env:
           LOCAL_DATABASE_PASSWORD: disposable-ci-config-check

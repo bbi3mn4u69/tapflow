@@ -6,7 +6,7 @@ Two Android apps exchange proprietary APDUs; a Kotlin/Ktor API will verify devic
 
 ## Current milestone
 
-Phase 5 software: Android POS creates server-backed demo sales, submits signed card proofs, displays authoritative approvals/declines and recovers interrupted requests from encrypted storage. The API atomically debits wallets with an immutable ledger and idempotent receipts, and exposes merchant payment list/detail routes. Owners manage pairing in the portal; Android Card enrolls device-held keys with one-time demo funding. **Physical NFC acceptance remains pending** by user choice. Refunds and the full reporting portal follow in phase 6. Runtime development uses Railway; verification uses disposable PostgreSQL. See [progress](docs/progress.md) and the governing [specification](overall.md).
+Phase 6 software: the merchant portal now displays live KPIs, daily activity, filtered/paginated transactions, demo receipts, refunds and owner audit history. Owner refunds atomically credit the original wallet; interrupted browser requests retain their idempotency key for recovery. The Android Card/POS payment flow remains available. **Physical NFC acceptance remains pending** by user choice. Production deployment, operational hardening and final demo assets remain phase 7 work. Runtime development uses Railway; all financial test fixtures use disposable PostgreSQL. See [progress](docs/progress.md) and the governing [specification](overall.md).
 
 ## Run locally
 
@@ -24,7 +24,7 @@ corepack pnpm install --frozen-lockfile
 corepack pnpm dev
 ```
 
-Open [localhost:5173](http://localhost:5173/login) and sign in with your seeded owner/operator account. `/health/live` confirms the process is running; `/health/ready` returns 200 only when PostgreSQL is reachable and migrations validate, otherwise 503. [OpenAPI](http://localhost:8080/api/v1/openapi.yaml) describes the full planned v1; `x-implementation-phase` identifies which milestone implements each operation. System, authentication, identity, merchant metadata, customer card/wallet, terminal lifecycle and payment intent/authorisation/list/detail endpoints run through phase 5.
+Open [localhost:5173](http://localhost:5173/login) and sign in with your seeded owner/operator account. `/health/live` confirms the process is running; `/health/ready` returns 200 only when PostgreSQL is reachable and migrations validate, otherwise 503. [OpenAPI](http://localhost:8080/api/v1/openapi.yaml) describes the full planned v1; `x-implementation-phase` identifies which milestone implements each operation. System, authentication, identity, merchant metadata, customer card/wallet, terminal lifecycle and payment intent/authorisation/list/detail, refunds, dashboard and audit endpoints run through phase 6.
 
 Set three distinct `SEED_*_PASSWORD` values locally, then run `./infra/scripts/seed-demo.sh` to create `owner@example.test`, `operator@example.test`, `customer@example.test` and one demo merchant. Seed reruns preserve existing passwords and create no device keys or funded wallets. Passwords never belong in Git or command-line arguments.
 
@@ -50,7 +50,7 @@ corepack pnpm api:lint
 corepack pnpm api:generate
 ```
 
-See [testing](docs/testing.md) for scope and hardware limitations. GitHub Actions runs JVM/web checks and builds both debug APKs.
+See [testing](docs/testing.md) for scope and hardware limitations. GitHub Actions runs JVM/web checks, isolated Chromium refund E2E and both debug APK builds.
 
 ## Repository layout
 
@@ -64,7 +64,7 @@ packages/protocol-kotlin/ Pure Kotlin/JVM APDU codecs, session state and verific
 services/payment-api/    Kotlin/Ktor application and HTTP tests
 contracts/               OpenAPI source; web types are generated from it
 infra/compose/           Pinned PostgreSQL development service
-infra/scripts/           Demo seed and isolated emulator auth verification
+infra/scripts/           Demo seed and isolated emulator/browser verification
 .github/workflows/       JVM/web and Android CI
 docs/                    Setup, decisions, design, testing and progress
 ```
@@ -78,3 +78,13 @@ python3 infra/scripts/test-auth-emulator.py
 ```
 
 See [setup](docs/setup.md) for required JWT/origin settings, Android API URLs and the isolated emulator test workflow. [Security behavior](docs/security.md) records the implemented controls and remaining deployment work.
+
+Live merchant/refund browser acceptance on disposable PostgreSQL:
+
+```sh
+npx --yes pnpm@9.12.3 --dir apps/web exec playwright install chromium
+python3 infra/scripts/test-web.py
+```
+
+Stop an API using `build/install` before fixture runs; restart it afterward. See
+[refund/reporting setup](docs/setup.md#merchant-reports-and-refunds--phase-6).

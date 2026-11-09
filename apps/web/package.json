@@ -17,7 +17,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "api:generate": "openapi-typescript ../../contracts/openapi.yaml -o src/api/generated/schema.d.ts",
-    "api:lint": "redocly lint ../../contracts/openapi.yaml --config ../../redocly.yaml"
+    "api:lint": "redocly lint ../../contracts/openapi.yaml --config ../../redocly.yaml",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@tanstack/react-query": "5.106.1",
@@ -28,6 +29,7 @@
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "@playwright/test": "1.65.0",
     "@redocly/cli": "2.76.0",
     "@tailwindcss/vite": "4.3.4",
     "@testing-library/jest-dom": "7.0.1",

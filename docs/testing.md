@@ -172,3 +172,47 @@ The payment signer is an instrumentation harness; it bypasses radio transport.
 The existing HCE-engine and protocol tests are separate evidence. These checks
 prove neither physical NFC routing/timings nor hardware-backed key protection on
 phones. Two-phone NFC and Android Studio sync with the pinned AGP remain unverified.
+
+## Phase 6 software checks — 2026-11-10 (Australia/Melbourne)
+
+- Backend: 96 tests pass, including eleven new refund/reporting cases. Owner A$10 +
+  A$15 refunds restore A$100, show PARTIAL/FULL and append distinct credit entries.
+  Twenty same-key requests credit once; competing A$20 requests cannot exceed an
+  A$25 payment. Tests cover changed payload, original blocked card refunds,
+  operator/audit denial, dual-member cross-merchant paths, invalid amounts,
+  nonapproved payments, post-credit audit failure rollback and whole-transaction
+  retry/exhaustion for PostgreSQL 40001/40P01.
+- Dashboard tests use an older authorisation window with a later refund and verify
+  gross/refunded/net/daily/recent consistency and microsecond-precision default
+  boundaries that round trip through the API. Audit pagination/date/filter bounds
+  and empty typed details are checked. Fresh/repeated Flyway migration and V003's
+  authorisation reporting index pass on disposable PostgreSQL 17.11.
+- Portal: 28 unit tests pass, including live response rendering, status filtering,
+  owner confirmation, operator controls/deep links, empty/error retry states,
+  integer-cent validation, daily data access, stable uncertain request keys and
+  preservation after later access denial. OpenAPI validation/type regeneration
+  without drift, strict typecheck, ESLint, Prettier and production build pass.
+- Chromium: three E2E tests pass against a real isolated API/PostgreSQL/Vite proxy.
+  They generate fresh test-only P-256 signing keys, enroll public SPKI, approve
+  actual intents, then verify browser partial/full refunds, wallet A$100, FULL
+  receipt, net A$0, two audit events, reload session restoration and logout.
+  Operator refund returns 403 and audit deep link is denied. A separate test hides
+  a committed refund response with 503, reloads the tab and replays its saved key:
+  wallet is A$85 and history contains exactly one A$10 refund.
+- Browser checks run at 1440×1000 and 360×800, reduced motion, en-AU locale and
+  Australia/Melbourne timezone. Navigation targets do not overlap and reach 44px;
+  mobile receipt/list has no horizontal overflow; no application pageerror occurs.
+  Actual [overview](screenshots/phase6-overview-desktop.png) and
+  [mobile receipt](screenshots/phase6-receipt-mobile.png) were visually inspected.
+- Android: all 15 existing emulator instrumentation tests pass without skips
+  (8 Card, 7 POS) using the extracted shared disposable API lifecycle. Both debug
+  and unsigned release APK builds, protocol's 12 tests and Card/POS/shared-auth lint
+  pass. No Android production behavior changes in this phase.
+- The fault-proxy self-check passes. Financial fixtures never load runtime `.env`
+  or mutate Railway; browser trace recording is disabled. CI now also executes
+  `python3 infra/scripts/test-web.py` and retains browser screenshot evidence.
+
+The browser gate covers Chromium, not every browser or assistive technology.
+Pending refund recovery is scoped to the same browser tab; closing/clearing it
+requires history reconciliation. Physical NFC, device-backed hardware properties,
+Android Studio sync and production deployment acceptance remain unverified.

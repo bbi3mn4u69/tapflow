@@ -107,11 +107,36 @@ Checks: 85 backend, 12 protocol, 18 portal and 15 Android instrumentation tests
 (8 Card, 7 POS); debug/release builds, Android lint, web checks and fault-proxy
 self-check pass locally. Full evidence and limitations are in [testing](testing.md).
 
+## Phase 6 — Merchant portal and refunds software
+
+Implemented and verified locally on 2026-11-10 (Australia/Melbourne).
+
+- Live merchant KPIs, UTC daily approved chart with accessible raw data, recent
+  authorisations and explicit reporting-window semantics. Date/status filters and
+  keyset pagination are shareable in transaction URLs; timestamps show Melbourne time.
+- Merchant-scoped receipt/detail and refund history, owner partial/full refund
+  confirmation, integer-cent validation and server-enforced operator restrictions.
+- Atomic original-wallet credit/refund/ledger/audit/replay, payment-before-wallet
+  lock order, bounded transient transaction retries and tenant-aware authorisation index.
+- Account/payment-scoped refund recovery across reloads in the same tab; unknown
+  outcomes and later permission errors retain the exact request/key. Query caches
+  refresh after success; arbitrary audit metadata is withheld from responses.
+- Owner audit filters/pagination, read-only settings and two-phone setup help;
+  terminal pairing/disable workflows reuse the existing accessible native dialog.
+- Shared disposable API fixture for emulator and Chromium acceptance. The browser
+  gate signs actual intents with fresh test-only keys and verifies partial/full
+  credit, role restrictions, dashboard/audit, mobile layout and a lost committed
+  refund response followed by reload/retry without another credit.
+
+Local checks: 96 backend, 12 protocol, 28 portal unit, 3 Chromium E2E and 15 Android
+instrumentation tests; debug/release APK builds, Android lint, web/contract/type
+checks and fault-proxy self-check pass. See [testing](testing.md) and
+[ADR-012](adr/ADR-012-refunds-and-merchant-reporting.md).
+
 ## Remaining ordered work
 
 1. Finish the phase 3 physical NFC SELECT acceptance gate when hardware is available.
 2. Finish phase 4 physical proof exchange and vendor/OS checks when two phones are available.
-3. Phase 6: full merchant portal, refunds, audit and browser E2E.
-4. Phase 7: containerized API/web, production topology, operations, security hardening and recorded demo.
+3. Phase 7: containerized API/web, production topology, operations, security hardening and recorded demo.
 
 A signed challenge alone never authorizes a payment; only the API decision does.

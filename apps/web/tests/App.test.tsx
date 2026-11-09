@@ -50,6 +50,20 @@ it('signs in with accessible labels and exposes only server memberships', async 
     vi.fn(async (input: string) => {
       if (input.endsWith('/auth/web/refresh')) return json({}, 401)
       if (input.endsWith('/auth/web/login')) return json(session)
+      if (input.includes('/dashboard'))
+        return json({
+          approvedCount: 0,
+          declinedCount: 0,
+          grossApprovedMinor: 0,
+          totalRefundedMinor: 0,
+          netApprovedMinor: 0,
+          currency: 'AUD',
+          from: '2026-11-01T00:00:00Z',
+          to: '2026-11-10T00:00:00Z',
+          dailyBuckets: [],
+          recentPayments: [],
+          demo: true,
+        })
       return json({
         merchantId: user.memberships[0].merchantId,
         name: 'First store',

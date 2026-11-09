@@ -23,7 +23,7 @@ Android saves only AES-GCM authenticated ciphertext in private preferences, usin
 
 ## Tenant guards and operational limits
 
-`MerchantAccess.require` checks active user, merchant account type, current membership and active merchant in SQL. Owner operations must call it with `owner=true` inside the same transaction as their protected work. Missing/cross-tenant resources return 404; a member lacking the owner role returns 403. Pairing-code creation and disabling enforce the real owner guard; refund operations follow in phase 6.
+`MerchantAccess.require` checks active user, merchant account type, current membership and active merchant in SQL. Owner operations must call it with `owner=true` inside the same transaction as their protected work. Missing/cross-tenant resources return 404; a member lacking the owner role returns 403. Pairing-code creation and disabling enforce the real owner guard; refund operations enforce the same owner guard in phase 6.
 
 Auth/pairing throttles and the 16 KiB body limit are implemented now. Rate-limit responses include Retry-After. Buckets are bounded and process-local. Before public proxy deployment, configure trusted proxy identity and shared limits if using multiple replicas; raw forwarding headers are deliberately ignored today.
 
@@ -85,3 +85,22 @@ confirmed final state. It does not log APDUs/proofs, clear unknown outcomes, cre
 fresh keys on timeout or approve on a local NFC response. Corrupt journal data
 fails closed and requires server-history reconciliation before storage replacement.
 See [ADR-011](adr/ADR-011-payments-and-recovery.md) for lock/recovery details.
+
+## Refunds and reporting — phase 6
+
+OWNER is enforced transactionally for every refund and audit read, including
+replays. Merchant membership alone never grants access through another merchant's
+payment path. Refund sums, original approved payment and original wallet are locked
+and validated before a credit; refund/credit/audit/replay either all commit or all
+roll back. Exact replay never creates a second credit. The original terminal/card
+may be disabled without removing a customer's right to receive demo value back.
+
+Dashboard and detail reads use consistent PostgreSQL snapshots. Audit responses
+project typed IDs/event names/timestamps only, with empty details; passwords,
+keys, tokens, signatures and arbitrary stored JSON are not exposed. Financial
+fixtures and browser-generated signing keys exist only in disposable test runs.
+
+The portal additionally stores unresolved refund key/amount/reason in scoped
+sessionStorage, with no tokens or proofs. A later access failure preserves an
+uncertain refund. Tab/storage loss requires reconciliation against server history
+before another request. See [ADR-012](adr/ADR-012-refunds-and-merchant-reporting.md).
