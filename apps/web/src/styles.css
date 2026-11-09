@@ -1165,3 +1165,14 @@ select {
     font-size: 0.83rem;
   }
 }
+@media (max-width: 760px) {
+  .topbar .merchant-select {
+    flex: 1;
+    min-width: 0;
+  }
+  .topbar .merchant-select select {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+}

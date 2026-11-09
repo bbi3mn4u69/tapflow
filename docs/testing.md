@@ -201,7 +201,9 @@ phones. Two-phone NFC and Android Studio sync with the pinned AGP remain unverif
   wallet is A$85 and history contains exactly one A$10 refund.
 - Browser checks run at 1440×1000 and 360×800, reduced motion, en-AU locale and
   Australia/Melbourne timezone. Navigation targets do not overlap and reach 44px;
-  mobile receipt/list has no horizontal overflow; no application pageerror occurs.
+  mobile receipt/list has no horizontal overflow, including a wider fallback font;
+  no application pageerror occurs. A Linux CI overflow was traced to the selector
+  retaining intrinsic width; mobile flex/grid minimum sizing now allows it to shrink.
   Actual [overview](screenshots/phase6-overview-desktop.png) and
   [mobile receipt](screenshots/phase6-receipt-mobile.png) were visually inspected.
 - Android: all 15 existing emulator instrumentation tests pass without skips

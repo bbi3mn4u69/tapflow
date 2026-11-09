@@ -105,6 +105,29 @@ async function fixture(request: APIRequestContext, amount = 2500) {
     post,
   }
 }
+async function expectNoOverflow(page: Page) {
+  const overflow = await page.evaluate(() =>
+    [...document.querySelectorAll('body *')]
+      .map((element) => {
+        const rect = element.getBoundingClientRect()
+        return {
+          tag: element.tagName,
+          class: element.className,
+          right: rect.right,
+          left: rect.left,
+        }
+      })
+      .filter(
+        (element) => element.right > innerWidth + 0.5 || element.left < -0.5,
+      ),
+  )
+  expect(overflow).toEqual([])
+  const size = await page.evaluate(() => ({
+    width: document.documentElement.scrollWidth,
+    viewport: innerWidth,
+  }))
+  expect(size.width).toBeLessThanOrEqual(size.viewport)
+}
 async function browserLogin(page: Page, email = 'owner@example.test') {
   await page.goto('/login')
   await page.getByLabel('Email', { exact: true }).fill(email)
@@ -188,15 +211,16 @@ test('owner issues partial and full refunds; wallet, report and audit reconcile'
   await expect(
     page.getByRole('heading', { name: 'Demo receipt' }),
   ).toBeVisible()
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true)
   await page.screenshot({
     path: 'test-results/phase6-receipt-mobile.png',
     fullPage: true,
   })
+  await expectNoOverflow(page)
+  await page.addStyleTag({
+    content: 'html { font-family: Verdana, sans-serif; }',
+  })
+  await expectNoOverflow(page)
+
   await page
     .getByRole('navigation', { name: 'Merchant pages' })
     .getByRole('link', { name: 'Transactions' })
@@ -204,11 +228,7 @@ test('owner issues partial and full refunds; wallet, report and audit reconcile'
   await expect(
     page.getByRole('link', { name: f.receipt, exact: true }),
   ).toBeVisible()
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true)
+  await expectNoOverflow(page)
   await page.getByRole('button', { name: 'Sign out', exact: true }).click()
   await expect(
     page.getByRole('button', { name: 'Sign in', exact: true }),
