@@ -23,6 +23,8 @@ jobs:
       - run: sdkmanager 'platforms;android-37.2' 'build-tools;36.0.0'
       - uses: gradle/actions/setup-gradle@v4
       - run: ./gradlew help :packages:protocol-kotlin:test :services:payment-api:test
+      - name: Check disposable payment fault proxy
+        run: python3 infra/scripts/payment_test_proxy.py
       - name: Validate development Compose
         env:
           LOCAL_DATABASE_PASSWORD: disposable-ci-config-check

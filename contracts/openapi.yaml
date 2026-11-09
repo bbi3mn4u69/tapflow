@@ -2,10 +2,10 @@
 openapi: 3.1.0
 info:
   title: TapFlow Demo API
-  version: 0.5.0
+  version: 0.6.0
   description: DEMO / NO REAL MONEY. Proprietary NFC simulator; no bank-card credentials
-    or real transfers. This is the complete v1 contract. At phase 4 authentication,
-    identity, merchant metadata, customer card/wallet, terminal pairing/lifecycle and system endpoints run; later operations are implemented
+    or real transfers. This is the complete v1 contract. At phase 5 authentication,
+    identity, merchant metadata, customer card/wallet, terminal pairing/lifecycle, payment intent/authorisation/list/detail and system endpoints run; later operations are implemented
     in the indicated x-implementation-phase. All merchant resources enforce membership
     server-side; cross-tenant resources return 404. Money is integer AUD cents; timestamps
     are UTC.
@@ -143,7 +143,7 @@ paths:
       operationId: getOpenApi
       summary: Read the v1 API contract
       description: Contract for the complete planned v1. Phase 1 system endpoints,
-        phase 2 authentication, identity and merchant metadata, phase 3 customer cards/wallets and phase 4 terminals are implemented.
+        phase 2 authentication, identity and merchant metadata, phase 3 customer cards/wallets and phase 4 terminals and phase 5 payments are implemented.
         DEMO / NO REAL MONEY.
       tags:
       - System
@@ -1079,7 +1079,10 @@ paths:
     post:
       operationId: createIntent
       summary: Create a 90-second single-use payment intent
-      description: Create a 90-second single-use payment intent. DEMO / NO REAL MONEY.
+      description: Create a 90-second single-use payment intent with millisecond expiry.
+        An active terminal can have only one unexpired pending intent; another key returns
+        409 until it is resolved. An exact replay returns the original creation body;
+        follow GET for current status. DEMO / NO REAL MONEY.
       tags:
       - Payments
       security:
@@ -1137,7 +1140,10 @@ paths:
         signed bytes from server state. APPROVED and business DECLINED (CARD_BLOCKED
         or INSUFFICIENT_FUNDS) return HTTP 200; invalid proof is HTTP 400. Wallet,
         ledger and idempotency response commit atomically. Exact retries return the
-        original status and body. DEMO / NO REAL MONEY.
+        original status and body, including after terminal/card disabling. A new key with
+        the identical proof on a decided intent also returns that decision. Changed
+        proof returns 409. Expiry commits EXPIRED with HTTP 410. No raw signature is
+        retained. DEMO / NO REAL MONEY.
       tags:
       - Payments
       security:
@@ -1196,8 +1202,8 @@ paths:
     get:
       operationId: getIntent
       summary: Recover the authoritative payment intent state
-      description: Recover the authoritative payment intent state. DEMO / NO REAL
-        MONEY.
+      description: Recover authoritative state, lazily persisting expiry. Remains available
+        to merchant members after terminal disabling. DEMO / NO REAL MONEY.
       tags:
       - Payments
       security:
@@ -1243,7 +1249,9 @@ paths:
     post:
       operationId: cancelIntent
       summary: Cancel a still-pending intent
-      description: Cancel a still-pending intent. DEMO / NO REAL MONEY.
+      description: Cancel a pending intent; repeated cancellation is safe. Approved/declined
+        intents return 409; expired intents return 200 EXPIRED. Remains available after
+        terminal disabling. DEMO / NO REAL MONEY.
       tags:
       - Payments
       security:
@@ -1293,7 +1301,10 @@ paths:
     get:
       operationId: listPayments
       summary: List merchant payments with refund summaries
-      description: List merchant payments with refund summaries. DEMO / NO REAL MONEY.
+      description: List merchant payments newest first by creation time and ID. Date range
+        is UTC with microsecond precision, inclusive from and exclusive to, at most
+        366 days; defaults to the last 30 days. Expired pending rows appear as EXPIRED.
+        Cursor is merchant-scoped; limit is 1–100. DEMO / NO REAL MONEY.
       tags:
       - Payments
       security:
@@ -1685,7 +1696,7 @@ components:
           const: tapflow-api
         phase:
           type: string
-          const: terminal-pairing
+          const: payments
         demo:
           type: boolean
           const: true
@@ -2142,6 +2153,7 @@ components:
       - amountMinor
       - currency
       - status
+      - challenge
       - expiresAt
       - createdAt
       - demo
@@ -2191,9 +2203,9 @@ components:
         signatureDerBase64:
           type: string
           format: byte
-          minLength: 8
-          maxLength: 136
-          description: ASN.1 DER ECDSA signature, at most 100 decoded bytes. No client-supplied
+          minLength: 12
+          maxLength: 96
+          description: Strict ASN.1 DER P-256 ECDSA signature, 8–72 decoded bytes. No client-supplied
             amount or nonce is trusted.
     AuthorisationResult:
       type: object

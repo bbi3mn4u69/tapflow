@@ -5,14 +5,8 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.platform.app.InstrumentationRegistry
 import com.tapflow.androidauth.MobileAuthApi
-import com.tapflow.androidauth.MobileAuthRepository
-import com.tapflow.androidauth.RefreshTokenStore
 import com.tapflow.pos.BuildConfig
 import com.tapflow.pos.MainActivity
-import com.tapflow.pos.data.PosLocalStore
-import com.tapflow.pos.data.PosRepository
-import com.tapflow.pos.ui.PosViewModel
-import com.tapflow.protocol.ReaderSession
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
@@ -26,6 +20,12 @@ class LivePairingTest {
     @Test
     fun operatorPairsRestoresAndObservesOwnerDisablingOnTheEmulator() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("tapflowLiveAuth") == "true")
+        InstrumentationRegistry.getInstrumentation()
+            .targetContext
+            .getSharedPreferences("tapflow_pos", 0)
+            .edit()
+            .clear()
+            .commit()
         compose.waitUntil(15000) {
             compose.onAllNodesWithText("Sign in").fetchSemanticsNodes().isNotEmpty()
         }
@@ -54,35 +54,20 @@ class LivePairingTest {
         compose.onNodeWithText("Terminal name").performTextInput("Emulator counter")
         compose.onNodeWithText("Pair terminal").performScrollTo().performClick()
         compose.waitUntil(20000) {
-            compose.onAllNodesWithText("Emulator counter").fetchSemanticsNodes().isNotEmpty()
+            compose.onAllNodesWithText("ACTIVE").fetchSemanticsNodes().isNotEmpty()
         }
         compose.activityRule.scenario.recreate()
         compose.waitUntil(20000) {
-            compose.onAllNodesWithText("Emulator counter").fetchSemanticsNodes().isNotEmpty()
-        }
-        val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val restored =
-            MobileAuthRepository(api, RefreshTokenStore(instrumentation.targetContext), "MERCHANT")
-        val restoredUser = checkNotNull(runBlocking { restored.restore() })
-        val readerModel =
-            PosViewModel(
-                PosRepository(restoredUser, restored, PosLocalStore(instrumentation.targetContext))
-            )
-        try {
-            instrumentation.runOnMainSync {
-                readerModel.startDiagnostic(2500)
-                readerModel.cancelDiagnostic()
-            }
-            compose.waitUntil(5000) {
-                !readerModel.state.value.busy &&
-                    readerModel.state.value.phase == ReaderSession.Phase.IDLE
-            }
-        } finally {
-            instrumentation.runOnMainSync { readerModel.clear() }
+            compose.onAllNodesWithText("ACTIVE").fetchSemanticsNodes().isNotEmpty()
         }
         compose.onNodeWithText("Amount in AUD").performScrollTo().performTextInput("25.00")
-        compose.onNodeWithText("Charge A$25.00").performScrollTo().assertIsNotEnabled()
-        compose.onNodeWithText("Test NFC connection").performScrollTo().assertIsNotEnabled()
+        compose.waitUntil(20000) {
+            compose
+                .onAllNodes(hasText("Charge A$25.00") and isEnabled())
+                .fetchSemanticsNodes()
+                .isNotEmpty()
+        }
+        compose.onNodeWithText("Charge A$25.00").performScrollTo().assertIsEnabled()
         compose.onNodeWithText("DEMO / NO REAL MONEY").assertIsDisplayed()
         compose.onNodeWithText("Amount in AUD").performImeAction()
         compose.onNodeWithText("Emulator counter").performScrollTo()

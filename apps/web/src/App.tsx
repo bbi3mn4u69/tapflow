@@ -539,7 +539,7 @@ function Workspace({ denied = false }: { denied?: boolean }) {
             </>
           )}
           <footer>
-            <span>Payments are not enabled yet.</span>
+            <span>Demo payments are available in Android POS.</span>
             <span>
               TapFlow is an educational simulator. No real money moves.
             </span>

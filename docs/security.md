@@ -23,7 +23,7 @@ Android saves only AES-GCM authenticated ciphertext in private preferences, usin
 
 ## Tenant guards and operational limits
 
-`MerchantAccess.require` checks active user, merchant account type, current membership and active merchant in SQL. Owner operations must call it with `owner=true` inside the same transaction as their protected work. Missing/cross-tenant resources return 404; a member lacking the owner role returns 403. The guard is tested through a test-only owner route; pairing and refund business operations are not enabled yet.
+`MerchantAccess.require` checks active user, merchant account type, current membership and active merchant in SQL. Owner operations must call it with `owner=true` inside the same transaction as their protected work. Missing/cross-tenant resources return 404; a member lacking the owner role returns 403. Pairing-code creation and disabling enforce the real owner guard; refund operations follow in phase 6.
 
 Auth/pairing throttles and the 16 KiB body limit are implemented now. Rate-limit responses include Retry-After. Buckets are bounded and process-local. Before public proxy deployment, configure trusted proxy identity and shared limits if using multiple replicas; raw forwarding headers are deliberately ignored today.
 
@@ -45,8 +45,7 @@ Card private keys stay in AndroidKeyStore. In-memory wallet state is cleared whe
 old cards must be disabled before replacing a lost device setup. HCE checks local
 ACTIVE status, key availability, unlock and explicit session-bound tapping consent.
 Offline HCE may not know that a remote card was blocked: the authorization server
-must check current database status before any future debit. That payment handler
-is not implemented yet. Signature completion never means payment approval.
+checks current database card status before every new debit. Signature completion alone never means payment approval.
 
 The emulator verifies Keystore API non-exportability and the actual asynchronous
 APDU engine, not physical hardware protection or RF interoperability. Two-phone
@@ -65,9 +64,24 @@ reconstruction and signing-key rotation behavior are recorded in
 
 The portal keeps reveals in component memory and restores keyboard focus on close.
 POS pending codes use a separate AES-GCM Keystore key and are scoped to the account;
-other accounts cannot read them. Server terminal status is rechecked before an
-explicit reader diagnostic. Signing or decoding a local diagnostic response does
-not prove server verification, payment authorization or a debit. The Charge path
-is disabled. Reader mode is foreground-only; I/O closes on cancellation, and late
+other accounts cannot read them. Server terminal status is rechecked before creating a
+sale. Decoding a signed proof does not prove authorization or a debit; approval
+requires the server decision. Reader mode is foreground-only; I/O closes on cancellation, and late
 results/duplicate tags cannot complete a new session. Physical timing, vendor
 behavior and NFC routing remain unverified until the two-phone hardware gate.
+
+## Payments — phase 5
+
+Intent fields are immutable server state; a client cannot choose the signed amount,
+merchant, nonce or expiry. Strict P-256 proof verification precedes any debit;
+wallet/intent locks and the unique debit constraint prevent double spending.
+Balance, ledger, decision, audit and replay response commit together. Exact proof
+replays recover a decision even after terminal/card disabling; new pending
+submission requires an active original terminal. Invalid proof never debits.
+
+The server retains a SHA-256 proof/request digest, never raw signatures. POS keeps
+an unresolved proof only in its encrypted local journal and clears it after a
+confirmed final state. It does not log APDUs/proofs, clear unknown outcomes, create
+fresh keys on timeout or approve on a local NFC response. Corrupt journal data
+fails closed and requires server-history reconciliation before storage replacement.
+See [ADR-011](adr/ADR-011-payments-and-recovery.md) for lock/recovery details.

@@ -46,4 +46,48 @@ class PosLocalStoreTest {
             AmountInput.parse(raw),
         )
     }
+
+    @Test
+    fun saleJournalIsEncryptedAccountScopedAndRejectsStaleWrites() {
+        val suffix = UUID.randomUUID().toString()
+        val context =
+            object : ContextWrapper(InstrumentationRegistry.getInstrumentation().targetContext) {
+                override fun getSharedPreferences(name: String, mode: Int) =
+                    super.getSharedPreferences("$name-$suffix", mode)
+            }
+        val store = PosLocalStore(context)
+        val owner = UUID.randomUUID().toString()
+        val merchant = UUID.randomUUID().toString()
+        val terminal = UUID.randomUUID().toString()
+        val first = store.prepareSale(owner, merchant, terminal, 2500)
+        val proof = org.json.JSONObject().put("signatureDerBase64", "synthetic-sensitive-proof")
+        store.saveSale(first.copy(proof = proof))
+        val restored = PosLocalStore(context).sale(owner)!!
+        assertEquals(first.createKey, restored.createKey)
+        assertEquals(first.authoriseKey, restored.authoriseKey)
+        assertEquals("synthetic-sensitive-proof", restored.proof?.getString("signatureDerBase64"))
+        assertNull(store.sale(UUID.randomUUID().toString()))
+        assertFalse(
+            context
+                .getSharedPreferences("tapflow_pos", Context.MODE_PRIVATE)
+                .all
+                .values
+                .joinToString()
+                .contains("synthetic-sensitive-proof")
+        )
+        try {
+            store.acknowledgeSale(owner)
+            fail("Unresolved payment must not be discarded")
+        } catch (_: IllegalStateException) {}
+        store.saveSale(restored.copy(finalStatus = "CANCELLED", proof = null))
+        store.acknowledgeSale(owner)
+        val next = store.prepareSale(owner, merchant, terminal, 100)
+        try {
+            store.saveSale(restored)
+            fail("Old workers must not overwrite a new payment")
+        } catch (_: IllegalStateException) {}
+        assertEquals(next.createKey, store.sale(owner)?.createKey)
+        store.saveSale(next.copy(finalStatus = "CANCELLED"))
+        store.acknowledgeSale(owner)
+    }
 }

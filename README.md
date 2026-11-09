@@ -6,7 +6,7 @@ Two Android apps exchange proprietary APDUs; a Kotlin/Ktor API will verify devic
 
 ## Current milestone
 
-Phase 4 software: owners create one-time pairing codes and manage terminals in the merchant portal. The Android POS pairs securely, restores its terminal, checks status and validates exact AUD cents. Shared reader/session code implements proprietary SELECT + SIGN with expiry/cancellation guards. The existing Android Card enrolls device-held keys and loads its one-time funded demo wallet. **Physical NFC acceptance remains pending** by user choice. Charge stays disabled until phase 5 implements server-backed payment intents/authorization; a debug-only connection test is explicitly labeled as no payment. Runtime development uses Railway; verification uses disposable PostgreSQL. See [progress](docs/progress.md) and the governing [specification](overall.md).
+Phase 5 software: Android POS creates server-backed demo sales, submits signed card proofs, displays authoritative approvals/declines and recovers interrupted requests from encrypted storage. The API atomically debits wallets with an immutable ledger and idempotent receipts, and exposes merchant payment list/detail routes. Owners manage pairing in the portal; Android Card enrolls device-held keys with one-time demo funding. **Physical NFC acceptance remains pending** by user choice. Refunds and the full reporting portal follow in phase 6. Runtime development uses Railway; verification uses disposable PostgreSQL. See [progress](docs/progress.md) and the governing [specification](overall.md).
 
 ## Run locally
 
@@ -24,7 +24,7 @@ corepack pnpm install --frozen-lockfile
 corepack pnpm dev
 ```
 
-Open [localhost:5173](http://localhost:5173/login) and sign in with your seeded owner/operator account. `/health/live` confirms the process is running; `/health/ready` returns 200 only when PostgreSQL is reachable and migrations validate, otherwise 503. [OpenAPI](http://localhost:8080/api/v1/openapi.yaml) describes the full planned v1; `x-implementation-phase` identifies which milestone implements each operation. System, authentication, identity, merchant metadata and customer card/wallet and terminal pairing/lifecycle endpoints run in phase 4.
+Open [localhost:5173](http://localhost:5173/login) and sign in with your seeded owner/operator account. `/health/live` confirms the process is running; `/health/ready` returns 200 only when PostgreSQL is reachable and migrations validate, otherwise 503. [OpenAPI](http://localhost:8080/api/v1/openapi.yaml) describes the full planned v1; `x-implementation-phase` identifies which milestone implements each operation. System, authentication, identity, merchant metadata, customer card/wallet, terminal lifecycle and payment intent/authorisation/list/detail endpoints run through phase 5.
 
 Set three distinct `SEED_*_PASSWORD` values locally, then run `./infra/scripts/seed-demo.sh` to create `owner@example.test`, `operator@example.test`, `customer@example.test` and one demo merchant. Seed reruns preserve existing passwords and create no device keys or funded wallets. Passwords never belong in Git or command-line arguments.
 

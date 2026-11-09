@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run mobile sign-in tests against a disposable API/database, never the runtime .env."""
+"""Run mobile integration tests against a disposable API/database, never the runtime .env."""
 import json
 import os
 from pathlib import Path
@@ -11,6 +11,7 @@ import tempfile
 import time
 import urllib.request
 import uuid
+from payment_test_proxy import PaymentTestProxy
 
 
 def main():
@@ -31,6 +32,7 @@ def main():
     env["POSTGRES_PASSWORD"] = secrets.token_urlsafe(24)
     container = None
     api = None
+    proxy = None
     log = tempfile.NamedTemporaryFile(prefix="tapflow-auth-test-", suffix=".log", delete=False)
     try:
         container = subprocess.check_output([
@@ -74,13 +76,17 @@ def main():
             time.sleep(0.5)
         else:
             raise RuntimeError("Disposable API did not become ready")
+        proxy=PaymentTestProxy(api_port)
         subprocess.run([
             "./gradlew", ":apps:android-card:connectedDebugAndroidTest", ":apps:android-pos:connectedDebugAndroidTest",
-            f"-PtapflowApiBaseUrl=http://10.0.2.2:{api_port}/api/v1",
+            f"-PtapflowApiBaseUrl=http://10.0.2.2:{proxy.port}/api/v1",
             "-Pandroid.testInstrumentationRunnerArguments.tapflowLiveAuth=true", "--no-parallel", "--console=plain",
         ], check=True)
-        print("Live authentication, card enrollment, POS pairing/restore/disable, encrypted stores and NFC engine checks passed against disposable PostgreSQL.")
+        assert proxy.injected and proxy.recovery_reads>=3, "Payment recovery fault was not exercised"
+        print("Live authentication, card enrollment, POS pairing/restore/disable, interrupted-payment recovery, encrypted stores and NFC engine checks passed against disposable PostgreSQL.")
     finally:
+        if proxy is not None:
+            proxy.close()
         if api is not None and api.poll() is None:
             api.terminate()
             try:

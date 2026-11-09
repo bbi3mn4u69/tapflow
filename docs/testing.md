@@ -92,8 +92,8 @@ The HCE engine harness runs with fresh emulator-generated test keys and an injec
 unlock predicate. It does **not** prove system NFC routing, radio timings, device
 unlock enforcement on physical hardware, hardware key protection, SELECT on a
 physical phone or two-phone ISO-DEP interoperability. Those acceptance checks are
-pending by the user's emulator-only instruction. The payment authorizer/POS reader
-are not implemented; a valid signature is not approval or a successful payment.
+pending by the user's emulator-only instruction. The phase 5 authorizer/POS software is implemented below; a valid signature alone
+is not approval or a successful payment.
 
 ## Phase 4 software checks — 2026-11-09
 
@@ -134,3 +134,41 @@ Keystore properties and hardware unlock behavior need two NFC-capable phones.
 The debug connection test only parses a card response; server signature verification
 and payment decisions arrive in phase 5. No debit, payment success or full NFC
 acceptance is claimed. Android Studio sync remains untested with the older IDE.
+
+## Phase 5 software checks — 2026-11-09
+
+- Backend: 85 tests pass on disposable PostgreSQL 17.11, including 18 payment tests.
+  A$25 debits A$100 to A$75 with one receipt/ledger row. Twenty same-key concurrent
+  requests and twenty different-key retries return the same decision and one debit.
+  Different terminals competing for one balance cannot overdraw it. Tests cover
+  proof replay/tampered signed fields, blocked cards, insufficient funds, pending
+  terminal disabling, tenant/role/input boundaries, creation races, cancellation
+  races, persisted/rechecked expiry, bounded listing and full rollback after a
+  failure following the debit. Existing migration/auth/card/pairing tests pass.
+- Protocol: 12 JVM tests pass. Both Android debug and unsigned release builds and
+  Card/POS/shared-auth debug lint pass without errors; upstream notices remain.
+- Android: 15 instrumentation tests pass without skips (8 Card, 7 POS) on the
+  API 36 `TapFlow_Auth_API_36` emulator. Encrypted journal checks cover stable keys,
+  account isolation, unfinished-sale acknowledgement refusal and stale writes.
+  The live payment test creates a fresh non-exportable Keystore signer, enrolls
+  its public SPKI on disposable PostgreSQL and signs an actual server intent.
+  The loopback proxy suppresses the committed authorisation response and two
+  subsequent status responses; POS stays in recovery, then retrieves APPROVED.
+  Wallet remains A$75 with exactly funding + debit activity. Recreation restores
+  the final sale; a later cancelled sale leaves that balance unchanged.
+- `python3 infra/scripts/test-auth-emulator.py` runs this isolated fixture. It never
+  loads the runtime `.env`, targets physical phones or sends fixture enrollment/
+  funding/payments to Railway. `python3 infra/scripts/payment_test_proxy.py` checks
+  the fault proxy itself; this self-check also runs in CI.
+- Portal: 18 tests, OpenAPI validation/type generation, ESLint, strict typecheck,
+  formatting and production build pass with the phase-5 contract. Full reporting,
+  refunds and browser payment E2E belong to phase 6.
+- The [approval screenshot](screenshots/phase5-approved-api36.png) was captured
+  from the disposable test and visually inspected at 360dp. Amount, authoritative
+  decision, receipt, recovery action and fixed demo label remain readable. Native
+  Material feedback/live regions follow the requested restrained design direction.
+
+The payment signer is an instrumentation harness; it bypasses radio transport.
+The existing HCE-engine and protocol tests are separate evidence. These checks
+prove neither physical NFC routing/timings nor hardware-backed key protection on
+phones. Two-phone NFC and Android Studio sync with the pinned AGP remain unverified.

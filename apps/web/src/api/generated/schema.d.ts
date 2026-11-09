@@ -73,7 +73,7 @@ export interface paths {
         };
         /**
          * Read the v1 API contract
-         * @description Contract for the complete planned v1. Phase 1 system endpoints, phase 2 authentication, identity and merchant metadata, phase 3 customer cards/wallets and phase 4 terminals are implemented. DEMO / NO REAL MONEY.
+         * @description Contract for the complete planned v1. Phase 1 system endpoints, phase 2 authentication, identity and merchant metadata, phase 3 customer cards/wallets and phase 4 terminals and phase 5 payments are implemented. DEMO / NO REAL MONEY.
          */
         get: operations["getOpenApi"];
         put?: never;
@@ -479,7 +479,7 @@ export interface paths {
         put?: never;
         /**
          * Create a 90-second single-use payment intent
-         * @description Create a 90-second single-use payment intent. DEMO / NO REAL MONEY.
+         * @description Create a 90-second single-use payment intent with millisecond expiry. An active terminal can have only one unexpired pending intent; another key returns 409 until it is resolved. An exact replay returns the original creation body; follow GET for current status. DEMO / NO REAL MONEY.
          */
         post: operations["createIntent"];
         delete?: never;
@@ -499,7 +499,7 @@ export interface paths {
         put?: never;
         /**
          * Verify proof and decide the demo payment exactly once
-         * @description Requires the original active paired terminal. Rebuild canonical signed bytes from server state. APPROVED and business DECLINED (CARD_BLOCKED or INSUFFICIENT_FUNDS) return HTTP 200; invalid proof is HTTP 400. Wallet, ledger and idempotency response commit atomically. Exact retries return the original status and body. DEMO / NO REAL MONEY.
+         * @description Requires the original active paired terminal. Rebuild canonical signed bytes from server state. APPROVED and business DECLINED (CARD_BLOCKED or INSUFFICIENT_FUNDS) return HTTP 200; invalid proof is HTTP 400. Wallet, ledger and idempotency response commit atomically. Exact retries return the original status and body, including after terminal/card disabling. A new key with the identical proof on a decided intent also returns that decision. Changed proof returns 409. Expiry commits EXPIRED with HTTP 410. No raw signature is retained. DEMO / NO REAL MONEY.
          */
         post: operations["authoriseIntent"];
         delete?: never;
@@ -517,7 +517,7 @@ export interface paths {
         };
         /**
          * Recover the authoritative payment intent state
-         * @description Recover the authoritative payment intent state. DEMO / NO REAL MONEY.
+         * @description Recover authoritative state, lazily persisting expiry. Remains available to merchant members after terminal disabling. DEMO / NO REAL MONEY.
          */
         get: operations["getIntent"];
         put?: never;
@@ -539,7 +539,7 @@ export interface paths {
         put?: never;
         /**
          * Cancel a still-pending intent
-         * @description Cancel a still-pending intent. DEMO / NO REAL MONEY.
+         * @description Cancel a pending intent; repeated cancellation is safe. Approved/declined intents return 409; expired intents return 200 EXPIRED. Remains available after terminal disabling. DEMO / NO REAL MONEY.
          */
         post: operations["cancelIntent"];
         delete?: never;
@@ -557,7 +557,7 @@ export interface paths {
         };
         /**
          * List merchant payments with refund summaries
-         * @description List merchant payments with refund summaries. DEMO / NO REAL MONEY.
+         * @description List merchant payments newest first by creation time and ID. Date range is UTC with microsecond precision, inclusive from and exclusive to, at most 366 days; defaults to the last 30 days. Expired pending rows appear as EXPIRED. Cursor is merchant-scoped; limit is 1–100. DEMO / NO REAL MONEY.
          */
         get: operations["listPayments"];
         put?: never;
@@ -656,7 +656,7 @@ export interface components {
             /** @constant */
             service: "tapflow-api";
             /** @constant */
-            phase: "terminal-pairing";
+            phase: "payments";
             /** @constant */
             demo: true;
         };
@@ -824,7 +824,7 @@ export interface components {
             amountMinor: components["schemas"]["AmountMinor"];
             currency: components["schemas"]["Currency"];
             status: components["schemas"]["PaymentStatus"];
-            challenge?: components["schemas"]["Challenge"];
+            challenge: components["schemas"]["Challenge"];
             expiresAt: components["schemas"]["Timestamp"];
             createdAt: components["schemas"]["Timestamp"];
             orderReference?: string | null;
@@ -837,7 +837,7 @@ export interface components {
             cardId: components["schemas"]["UUID"];
             /**
              * Format: byte
-             * @description ASN.1 DER ECDSA signature, at most 100 decoded bytes. No client-supplied amount or nonce is trusted.
+             * @description Strict ASN.1 DER P-256 ECDSA signature, 8–72 decoded bytes. No client-supplied amount or nonce is trusted.
              */
             signatureDerBase64: string;
         };

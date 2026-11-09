@@ -71,8 +71,10 @@ Vite proxies `/api` to the API on port 8080. `API_HOST`/`API_PORT` configure the
 
 - `GET /health/live`: 200 while the process is running, independent of database health.
 - `GET /health/ready`: 200 only when the database responds and its migration history matches the versions/checksums validated at startup; otherwise 503.
-- `GET /api/v1/status`: implementation phase `authentication`.
+- `GET /api/v1/status`: implementation phase `payments`.
 - Web and mobile login/refresh/logout, `GET /api/v1/me`, and merchant metadata `GET /api/v1/merchants/{merchantId}`.
+- Customer card enrollment/disable, wallet/activity and terminal pairing/list/disable.
+- Payment create/authorise/status/cancel and merchant payment list/detail.
 - Optional customer registration only when its explicit environment flag is enabled.
 - `GET /api/v1/openapi.yaml`: complete planned v1 contract, with implementation phase annotations.
 
@@ -152,7 +154,7 @@ stop local tapping. Disable is server authoritative; it never resets the balance
 If a stored key is lost, disable the old card, then choose replacement setup. No
 private key recovery, wallet transfer or automatic replacement is performed.
 See [protocol](nfc-protocol.md) and [testing](testing.md) for exact verification
-scope. The physical NFC gate remains pending; no POS reader is implemented yet.
+scope. The physical NFC gate remains pending; POS software is implemented below.
 
 ## Terminal pairing and POS — phase 4
 
@@ -174,20 +176,43 @@ This build supports one merchant pairing per POS installation. Disabled or forei
 installations cannot be reactivated/reassigned by another code. For deliberate
 replacement, an owner can disable the old terminal and authorize a newly installed
 or cleared POS app with a fresh code; clearing app storage also signs the operator
-out. The old terminal/history remain. Each merchant is limited to 100 terminal
+out. Resolve any pending sale and reconcile its server history before clearing
+storage; clearing it loses the recovery keys. The old terminal/history remain. Each merchant is limited to 100 terminal
 records including disabled records; larger demo fleets need an explicit policy
 change before lifting that bound.
 
-Checkout validates integer AUD cents but **Charge is disabled** until phase 5.
-Debug builds alone expose **Test NFC connection** on an active, freshly verified
-terminal with NFC enabled and a valid amount. This creates a local 90-second test
-challenge, not a server intent, and sends only the proprietary SELECT/SIGN APDUs.
-It never submits payment authorization. An emulator reports missing NFC and keeps
-that action disabled. Backgrounding/cancelling stops reader mode and pending work.
-Physical SELECT and the two-phone exchange remain pending by user choice.
+Checkout validates integer AUD cents. **Charge** creates a real demo intent on the
+server. Physical SELECT and the two-phone exchange remain pending by user choice.
+The emulator can create, inspect and cancel intents; it cannot perform an NFC tap.
 
 Pairing-code reconstruction uses a domain-separated HMAC with the existing random
 JWT signing secret. After key rotation a creation retry can return
 PAIRING_CODE_UNAVAILABLE; close the dialog and create a new code/request. Previously
 revealed codes still match their stored hash until consumed or expired. See
 [ADR-010](adr/ADR-010-pairing-and-pos-reader.md) for the replay/storage design.
+
+## Demo payments and recovery — phase 5
+
+Enter an amount (A$0.01–A$10,000.00) and choose **Charge**. The API creates a
+90-second intent. With two compatible NFC phones, enable tapping in Android Card,
+keep both phones unlocked and hold them together. A proof is submitted to the
+server; only its decision can display APPROVED or DECLINED. A$25 from a freshly
+funded A$100 wallet leaves A$75. NFC availability is checked independently of HTTP.
+
+POS saves the sale and request keys before making requests. When the connection
+fails, use **Check payment status** for that same sale. **Retry saved submission**
+first checks status and reuses the encrypted original proof and idempotency key.
+**Cancel payment** is safe to repeat, but cannot undo an approved debit. A local
+countdown never decides expiry. Choose **New sale** only after the server confirms
+a final result. Activity recreation, backgrounding and sign-out retain the journal.
+Never clear storage or reinstall to resolve an unknown payment outcome. If the
+journal becomes unreadable, reconcile the terminal's server payment history before
+replacement; a different operator account cannot overwrite an unfinished sale.
+
+Merchant members can read `GET /api/v1/merchants/{merchantId}/payments` and
+`.../payments/{paymentId}`. List supports status, a 1–100 limit and keyset cursor;
+UTC dates are inclusive `from`/exclusive `to` with a maximum 366-day range (default
+last 30 days). No raw signature is returned. Full portal reporting/refunds are
+phase 6 work. The emulator fixture script uses a disposable database and test-only
+Keystore signer to verify an interrupted payment without claiming NFC acceptance.
+See [ADR-011](adr/ADR-011-payments-and-recovery.md).

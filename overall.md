@@ -1760,16 +1760,22 @@ Physical gate pending: user requested emulator-only testing on 2026-11-09. The e
 
 **Gate:** POS successfully receives valid signed proof from Card app and can display card ID/proof success **without logging raw keys or signatures**.
 
-Software implemented with emulator/JVM checks on 2026-11-09, following the user’s request to continue. Physical SELECT and two-phone exchange remain pending. Charge stays disabled until phase 5; debug builds expose an explicit local NFC connection test, never payment approval.
+Software implemented with emulator/JVM checks on 2026-11-09, following the user’s request to continue. Physical SELECT and two-phone exchange remain pending. At this milestone Charge stayed disabled; phase 5 below replaces the local diagnostic with server-backed payment flow.
 
 ### Phase 5 — Payments and ledger
 
-- [ ] Implement create intent, signed authorisation, authoritative status fetch, cancel, expiry.
-- [ ] Implement DB locks/atomic wallet debit and `idempotency_records` response persistence.
-- [ ] Implement POS success/decline/recovery UX and merchant payment list/detail endpoints.
-- [ ] Run concurrency, duplicate submission, replay, insufficient balance, expiry, and error tests.
+- [x] Implement create intent, signed authorisation, authoritative status fetch, cancel, expiry.
+- [x] Implement DB locks/atomic wallet debit and `idempotency_records` response persistence.
+- [x] Implement POS success/decline/recovery UX and merchant payment list/detail endpoints.
+- [x] Run concurrency, duplicate submission, replay, insufficient balance, expiry, and error tests.
 
 **Gate:** A$25 payment from A$100 gives A$75; 20 concurrent duplicates still debit only A$25; offline recovery is correct.
+
+Software gate verified on 2026-11-09 with disposable PostgreSQL and an emulator
+Keystore signer. A fault proxy hides the committed result and two status reads;
+POS recovers the same approved payment without another debit. This does not
+establish RF transport; the user-requested physical NFC gates remain pending.
+See `docs/testing.md` and `docs/adr/ADR-011-payments-and-recovery.md`.
 
 ### Phase 6 — Merchant portal and refunds
 

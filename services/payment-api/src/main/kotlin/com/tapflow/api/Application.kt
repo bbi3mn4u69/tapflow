@@ -14,6 +14,8 @@ import com.tapflow.api.config.CardConfig
 import com.tapflow.api.config.configurePlugins
 import com.tapflow.api.db.Database
 import com.tapflow.api.merchants.MerchantAccess
+import com.tapflow.api.payments.PaymentService
+import com.tapflow.api.payments.paymentRoutes
 import com.tapflow.api.terminals.TerminalService
 import com.tapflow.api.terminals.terminalRoutes
 import io.ktor.http.ContentType
@@ -52,6 +54,7 @@ fun Application.module(
     limits: RateLimits = RateLimits(),
     cardConfig: CardConfig = CardConfig(),
     terminals: TerminalService? = null,
+    payments: PaymentService? = null,
 ) {
     configurePlugins(nextRequestId)
     if (auth != null) configureAuthentication(auth)
@@ -66,6 +69,8 @@ fun Application.module(
         if (auth != null && database != null) authRoutes(auth, MerchantAccess(database), limits)
         if (auth != null && database != null) cardRoutes(CardService(database, cardConfig), limits)
         if (auth != null && terminals != null) terminalRoutes(terminals)
+        if (auth != null && database != null)
+            paymentRoutes(payments ?: PaymentService(database), limits)
         get("/health/live") {
             call.respond(HealthStatus("alive"))
         }
@@ -91,7 +96,7 @@ fun Application.module(
 @kotlinx.serialization.Serializable
 data class SystemStatus(
     val service: String = "tapflow-api",
-    val phase: String = "terminal-pairing",
+    val phase: String = "payments",
     val demo: Boolean = true,
 )
 

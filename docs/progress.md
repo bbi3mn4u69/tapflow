@@ -76,17 +76,42 @@ The phase 3 physical gate and phase 4 two-phone exchange remain pending.
   fresh terminal status, exact cent input and honest NFC diagnostics on the emulator.
 - Shared SELECT/SIGN reader, foreground-only ISO-DEP I/O, duplicate/stale response
   guards, same-challenge retry, expiry, and cancellation while status is still loading.
-- Charge remains disabled; debug-only local connection tests never create a payment
-  intent or claim server signature verification/authorization.
+- At this milestone Charge remained disabled; the phase 5 flow below replaces
+  the local connection diagnostic with server-backed payments.
 
 See [testing](testing.md) and [ADR-010](adr/ADR-010-pairing-and-pos-reader.md).
+
+## Phase 5 — Payments and ledger software
+
+Implemented and verified on 2026-11-09 with disposable PostgreSQL and the emulator.
+The phase 3/4 physical NFC gates remain pending by the user's instruction.
+
+- Merchant-scoped 90-second immutable intents, exact-cent validation, active-terminal
+  guard, authoritative status/expiry, repeatable cancel and bounded payment list/detail.
+- Server-state P-256 proof verification, terminal/intent/card/wallet lock ordering,
+  atomic debit/ledger/decision/audit/idempotency response, final business declines,
+  committed expiry errors and receipt recovery after terminal disabling.
+- Twenty concurrent identical submissions and twenty different submission keys each
+  debit once; competing terminals cannot overdraw one wallet. Tampering, invalid
+  inputs, tenant boundaries, cancellation races and post-debit rollback are tested.
+- POS encrypted account-scoped sale journal, stable request keys, saved-proof retry,
+  recovery after unknown outcomes/recreation, explicit cancellation/expiry and
+  server-authoritative approval/decline. Foreground reader uses the server challenge.
+- Disposable emulator test signs an actual intent with a fresh non-exportable test
+  key, confirms A$100 → A$75, hides the committed response and two status responses,
+  then recovers APPROVED without another debit. It also checks recreation and cancel.
+- OpenAPI/types/status, setup/security guidance and [ADR-011](adr/ADR-011-payments-and-recovery.md)
+  describe the implemented behavior. [Actual approval screen](screenshots/phase5-approved-api36.png).
+
+Checks: 85 backend, 12 protocol, 18 portal and 15 Android instrumentation tests
+(8 Card, 7 POS); debug/release builds, Android lint, web checks and fault-proxy
+self-check pass locally. Full evidence and limitations are in [testing](testing.md).
 
 ## Remaining ordered work
 
 1. Finish the phase 3 physical NFC SELECT acceptance gate when hardware is available.
 2. Finish phase 4 physical proof exchange and vendor/OS checks when two phones are available.
-3. Phase 5: atomic payments, ledger, idempotency, recovery and concurrency tests.
-4. Phase 6: full merchant portal, refunds, audit and browser E2E.
-5. Phase 7: containerized API/web, production topology, operations, security hardening and recorded demo.
+3. Phase 6: full merchant portal, refunds, audit and browser E2E.
+4. Phase 7: containerized API/web, production topology, operations, security hardening and recorded demo.
 
-Do not treat a signed challenge or a funded demo wallet as payment authorization.
+A signed challenge alone never authorizes a payment; only the API decision does.

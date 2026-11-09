@@ -17,3 +17,5 @@ local.properties
 *.hprof
 .DS_Store
 *.log
+
+__pycache__/
