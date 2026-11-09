@@ -2,11 +2,11 @@
 openapi: 3.1.0
 info:
   title: TapFlow Demo API
-  version: 0.6.0
+  version: 0.7.0
   description: DEMO / NO REAL MONEY. Proprietary NFC simulator; no bank-card credentials
-    or real transfers. This is the complete v1 contract. At phase 5 authentication,
-    identity, merchant metadata, customer card/wallet, terminal pairing/lifecycle, payment intent/authorisation/list/detail and system endpoints run; later operations are implemented
-    in the indicated x-implementation-phase. All merchant resources enforce membership
+    or real transfers. This is the complete v1 contract. At phase 6 authentication,
+    identity, merchant metadata, customer card/wallet, terminal pairing/lifecycle, payments, refunds, dashboard/audit and system endpoints run.
+    Milestones are indicated by x-implementation-phase. All merchant resources enforce membership
     server-side; cross-tenant resources return 404. Money is integer AUD cents; timestamps
     are UTC.
   contact:
@@ -143,7 +143,7 @@ paths:
       operationId: getOpenApi
       summary: Read the v1 API contract
       description: Contract for the complete planned v1. Phase 1 system endpoints,
-        phase 2 authentication, identity and merchant metadata, phase 3 customer cards/wallets and phase 4 terminals and phase 5 payments are implemented.
+        phase 2 authentication, identity and merchant metadata, phase 3 customer cards/wallets and phase 4 terminals, phase 5 payments and phase 6 refunds/reporting/audit are implemented.
         DEMO / NO REAL MONEY.
       tags:
       - System
@@ -838,7 +838,9 @@ paths:
       summary: Read server-derived merchant totals
       description: OWNER/OPERATOR. Group payments by authorisation time in [from,to),
         then subtract all refunds associated with those payments, even if refunded
-        later. Maximum 366-day interval. DEMO / NO REAL MONEY.
+        later. Daily buckets use UTC dates and include zero days; recent payments
+        use the same authorisation window. One repeatable-read snapshot keeps totals
+        consistent. Maximum 366-day interval; default last 30 days. DEMO / NO REAL MONEY.
       tags:
       - Merchants
       security:
@@ -1461,7 +1463,10 @@ paths:
     get:
       operationId: listAuditEvents
       summary: 'OWNER: read sanitised merchant audit events'
-      description: 'OWNER: read sanitised merchant audit events. DEMO / NO REAL MONEY.'
+      description: 'OWNER: read sanitised merchant audit events, newest first by timestamp
+        and ID. Bounded to 100 per page with a merchant-scoped cursor and a maximum
+        366-day UTC date range (default last 30 days). Details are deliberately empty;
+        arbitrary stored JSON is never returned. DEMO / NO REAL MONEY.'
       tags:
       - Merchants
       security:
@@ -1696,7 +1701,7 @@ components:
           const: tapflow-api
         phase:
           type: string
-          const: payments
+          const: merchant-operations
         demo:
           type: boolean
           const: true

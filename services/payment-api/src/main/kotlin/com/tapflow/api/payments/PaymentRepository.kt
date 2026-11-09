@@ -325,6 +325,25 @@ internal class PaymentRepository {
             }
     }
 
+    fun recent(
+        c: Connection,
+        merchant: UUID,
+        from: Instant,
+        to: Instant,
+        now: Instant,
+    ): List<PaymentSummary> =
+        c.prepareStatement(
+                summarySql +
+                    " where p.merchant_id=? and p.authorised_at>=? and p.authorised_at<? order by p.authorised_at desc,p.id desc limit 10"
+            )
+            .use {
+                it.setTimestamp(1, Timestamp.from(now))
+                it.setObject(2, merchant)
+                it.setTimestamp(3, Timestamp.from(from))
+                it.setTimestamp(4, Timestamp.from(to))
+                it.executeQuery().use { r -> buildList { while (r.next()) add(r.summary()) } }
+            }
+
     private val summarySql =
         """
         select p.*,t.label as terminal_label,

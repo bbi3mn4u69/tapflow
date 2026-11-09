@@ -282,6 +282,7 @@ class PaymentService(
     ): PaymentDetail {
         get(identity, merchant, id, requestId)
         return db.query { c ->
+            c.transactionIsolation = java.sql.Connection.TRANSACTION_REPEATABLE_READ
             access.require(c, identity.userId, merchant)
             repo.details(c, merchant, id, clock.instant())
         }

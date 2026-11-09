@@ -3,7 +3,7 @@ import type { components } from './generated/schema'
 
 const statusSchema = z.object({
   service: z.literal('tapflow-api'),
-  phase: z.literal('payments'),
+  phase: z.literal('merchant-operations'),
   demo: z.literal(true),
 })
 

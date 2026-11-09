@@ -14,7 +14,10 @@ import com.tapflow.api.config.CardConfig
 import com.tapflow.api.config.configurePlugins
 import com.tapflow.api.db.Database
 import com.tapflow.api.merchants.MerchantAccess
+import com.tapflow.api.merchants.ReportsService
+import com.tapflow.api.merchants.operationsRoutes
 import com.tapflow.api.payments.PaymentService
+import com.tapflow.api.payments.RefundService
 import com.tapflow.api.payments.paymentRoutes
 import com.tapflow.api.terminals.TerminalService
 import com.tapflow.api.terminals.terminalRoutes
@@ -71,6 +74,8 @@ fun Application.module(
         if (auth != null && terminals != null) terminalRoutes(terminals)
         if (auth != null && database != null)
             paymentRoutes(payments ?: PaymentService(database), limits)
+        if (auth != null && database != null)
+            operationsRoutes(RefundService(database), ReportsService(database), limits)
         get("/health/live") {
             call.respond(HealthStatus("alive"))
         }
@@ -96,7 +101,7 @@ fun Application.module(
 @kotlinx.serialization.Serializable
 data class SystemStatus(
     val service: String = "tapflow-api",
-    val phase: String = "payments",
+    val phase: String = "merchant-operations",
     val demo: Boolean = true,
 )
 

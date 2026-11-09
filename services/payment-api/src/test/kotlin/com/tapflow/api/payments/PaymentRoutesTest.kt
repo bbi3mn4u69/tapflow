@@ -185,10 +185,10 @@ class PaymentRoutesTest {
                 sign()
             }
         return buildJsonObject {
-                put("terminalId", intent.getValue("terminalId"))
-                put("cardId", cardId.toString())
-                put("signatureDerBase64", Base64.getEncoder().encodeToString(signature))
-            }
+            put("terminalId", intent.getValue("terminalId"))
+            put("cardId", cardId.toString())
+            put("signatureDerBase64", Base64.getEncoder().encodeToString(signature))
+        }
             .toString()
     }
 
@@ -945,5 +945,452 @@ class PaymentRoutesTest {
             )
             assertEquals(10000, balance())
             assertEquals(0, debits())
+        }
+
+    private fun makeOwner() = db.transaction { c ->
+        c.prepareStatement(
+                "update merchant_memberships set role='OWNER' where user_id=? and merchant_id=?"
+            )
+            .use {
+                it.setObject(1, operator)
+                it.setObject(2, merchant)
+                it.executeUpdate()
+            }
+    }
+
+    private suspend fun HttpClient.refund(
+        token: String,
+        id: String,
+        amount: Long,
+        key: UUID = UUID.randomUUID(),
+        merchantId: UUID = merchant,
+    ) =
+        post("/api/v1/merchants/$merchantId/payments/$id/refunds") {
+            bearerAuth(token)
+            header("Idempotency-Key", key)
+            contentType(ContentType.Application.Json)
+            setBody("""{"amountMinor":$amount,"reason":"CUSTOMER_REQUEST"}""")
+        }
+
+    @Test
+    fun `owner refunds ten then fifteen dollars and restores the wallet to one hundred`() =
+        testApplication {
+            application { module(db, auth = AuthService(db, config)) }
+            makeOwner()
+            val token = client.login()
+            val intent = json(client.create(token))
+            val id = intent.getValue("id").jsonPrimitive.content
+            assertEquals(HttpStatusCode.OK, client.authorise(token, id, proof(intent)).status)
+            val partial = client.refund(token, id, 1000)
+            assertEquals(HttpStatusCode.Created, partial.status)
+            assertEquals("PARTIAL", json(partial).getValue("refundStatus").jsonPrimitive.content)
+            assertEquals(8500, balance())
+            val full = client.refund(token, id, 1500)
+            assertEquals(HttpStatusCode.Created, full.status)
+            assertEquals("FULL", json(full).getValue("refundStatus").jsonPrimitive.content)
+            assertEquals(10000, balance())
+            val detail =
+                json(client.get("/api/v1/merchants/$merchant/payments/$id") { bearerAuth(token) })
+            assertEquals(2500, detail.getValue("refundedAmountMinor").jsonPrimitive.long)
+            assertEquals(0, detail.getValue("netAmountMinor").jsonPrimitive.long)
+            assertEquals(2, detail.getValue("refunds").jsonArray.size)
+            assertEquals(HttpStatusCode.Conflict, client.refund(token, id, 1).status)
+            db.transaction { c ->
+                c.prepareStatement(
+                        "select count(*) from wallet_ledger where wallet_id=? and entry_type='CREDIT'"
+                    )
+                    .use {
+                        it.setObject(1, wallet)
+                        it.executeQuery().use { r ->
+                            r.next()
+                            assertEquals(2, r.getInt(1))
+                        }
+                    }
+            }
+        }
+
+    @Test
+    fun `twenty identical refund retries credit once and reject changed payload`() =
+        testApplication {
+            application { module(db, auth = AuthService(db, config)) }
+            makeOwner()
+            val token = client.login()
+            val intent = json(client.create(token))
+            val id = intent.getValue("id").jsonPrimitive.content
+            client.authorise(token, id, proof(intent))
+            val key = UUID.randomUUID()
+            val responses =
+                kotlinx.coroutines.coroutineScope {
+                    (1..20).map { async { client.refund(token, id, 1000, key) } }.map { it.await() }
+                }
+            assertTrue(responses.all { it.status == HttpStatusCode.Created })
+            assertEquals(1, responses.map { it.bodyAsText() }.distinct().size)
+            assertEquals(8500, balance())
+            assertEquals(HttpStatusCode.Conflict, client.refund(token, id, 1001, key).status)
+        }
+
+    @Test
+    fun `parallel partial refunds cannot exceed the original approved amount`() = testApplication {
+        application { module(db, auth = AuthService(db, config)) }
+        makeOwner()
+        val token = client.login()
+        val intent = json(client.create(token))
+        val id = intent.getValue("id").jsonPrimitive.content
+        client.authorise(token, id, proof(intent))
+        val responses =
+            kotlinx.coroutines.coroutineScope {
+                (1..2).map { async { client.refund(token, id, 2000) } }.map { it.await() }
+            }
+        assertEquals(
+            setOf(HttpStatusCode.Created, HttpStatusCode.Conflict),
+            responses.map { it.status }.toSet(),
+        )
+        assertEquals(9500, balance())
+    }
+
+    @Test
+    fun `operator cannot refund or read audit and foreign merchant payments stay hidden`() =
+        testApplication {
+            application { module(db, auth = AuthService(db, config)) }
+            val token = client.login()
+            val intent = json(client.create(token))
+            val id = intent.getValue("id").jsonPrimitive.content
+            client.authorise(token, id, proof(intent))
+            assertEquals(HttpStatusCode.Forbidden, client.refund(token, id, 1000).status)
+            assertEquals(
+                HttpStatusCode.Forbidden,
+                client.get("/api/v1/merchants/$merchant/audit-events") { bearerAuth(token) }.status,
+            )
+            makeOwner()
+            assertEquals(
+                HttpStatusCode.NotFound,
+                client.refund(token, id, 1000, merchantId = UUID.randomUUID()).status,
+            )
+            assertEquals(7500, balance())
+        }
+
+    @Test
+    fun `dashboard includes later refunds in the original authorisation window and sanitises audit`() =
+        testApplication {
+            application { module(db, auth = AuthService(db, config)) }
+            makeOwner()
+            val token = client.login()
+            val intent = json(client.create(token))
+            val id = intent.getValue("id").jsonPrimitive.content
+            client.authorise(token, id, proof(intent))
+            db.transaction { c ->
+                c.prepareStatement(
+                        "update payment_intents set authorised_at='2026-01-05T12:00:00Z' where id=?"
+                    )
+                    .use {
+                        it.setObject(1, UUID.fromString(id))
+                        it.executeUpdate()
+                    }
+            }
+            client.refund(token, id, 1000)
+            val dash =
+                client.get(
+                    "/api/v1/merchants/$merchant/dashboard?from=2026-01-05T00:00:00Z&to=2026-01-06T00:00:00Z"
+                ) {
+                    bearerAuth(token)
+                }
+            assertEquals(HttpStatusCode.OK, dash.status)
+            val totals = json(dash)
+            assertEquals(1, totals.getValue("approvedCount").jsonPrimitive.long)
+            assertEquals(2500, totals.getValue("grossApprovedMinor").jsonPrimitive.long)
+            assertEquals(1000, totals.getValue("totalRefundedMinor").jsonPrimitive.long)
+            assertEquals(1500, totals.getValue("netApprovedMinor").jsonPrimitive.long)
+            assertEquals(
+                id,
+                totals
+                    .getValue("recentPayments")
+                    .jsonArray
+                    .single()
+                    .jsonObject
+                    .getValue("paymentId")
+                    .jsonPrimitive
+                    .content,
+            )
+            assertEquals(
+                "2026-01-05",
+                totals
+                    .getValue("dailyBuckets")
+                    .jsonArray
+                    .single()
+                    .jsonObject
+                    .getValue("date")
+                    .jsonPrimitive
+                    .content,
+            )
+            val events =
+                client.get(
+                    "/api/v1/merchants/$merchant/audit-events?eventType=refund.created&limit=1"
+                ) {
+                    bearerAuth(token)
+                }
+            assertEquals(HttpStatusCode.OK, events.status)
+            val event = json(events).getValue("items").jsonArray.single().jsonObject
+            assertEquals("refund.created", event.getValue("eventType").jsonPrimitive.content)
+            assertEquals(buildJsonObject {}, event.getValue("details"))
+            assertFalse(events.bodyAsText().contains("signature"))
+            assertEquals(
+                HttpStatusCode.BadRequest,
+                client
+                    .get(
+                        "/api/v1/merchants/$merchant/dashboard?from=2020-01-01T00:00:00Z&to=2026-01-01T00:00:00Z"
+                    ) {
+                        bearerAuth(token)
+                    }
+                    .status,
+            )
+        }
+
+    @Test
+    fun `refund failures after wallet credit roll back refund ledger audit and retry key`() =
+        kotlinx.coroutines.runBlocking {
+            makeOwner()
+            val identity = com.tapflow.api.auth.Identity(operator, UUID.randomUUID(), "MOBILE")
+            val service = PaymentService(db)
+            val intent =
+                service
+                    .create(
+                        identity,
+                        merchant,
+                        CreateIntentRequest(terminal.toString(), 2500, "AUD"),
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                    )
+                    .body
+            val id = UUID.fromString(intent.getValue("id").jsonPrimitive.content)
+            service.authorise(
+                identity,
+                merchant,
+                id,
+                Json.decodeFromString<AuthoriseRequest>(proof(intent)),
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+            )
+            var calls = 0
+            val broken =
+                RefundService(
+                    db,
+                    nextId = {
+                        if (++calls == 4) error("Injected refund audit failure")
+                        else UUID.randomUUID()
+                    },
+                )
+            val key = UUID.randomUUID()
+            val request = RefundRequest(1000, "CUSTOMER_REQUEST")
+            assertThrows(IllegalStateException::class.java) {
+                kotlinx.coroutines.runBlocking {
+                    broken.create(identity, merchant, id, request, key, UUID.randomUUID())
+                }
+            }
+            assertEquals(7500, balance())
+            assertEquals(0, service.detail(identity, merchant, id, UUID.randomUUID()).refunds.size)
+            assertEquals(
+                201,
+                RefundService(db)
+                    .create(identity, merchant, id, request, key, UUID.randomUUID())
+                    .status,
+            )
+            assertEquals(8500, balance())
+        }
+
+    @Test
+    fun `nonapproved and invalid refunds never credit while blocked original cards can be refunded`() =
+        testApplication {
+            application { module(db, auth = AuthService(db, config)) }
+            makeOwner()
+            val token = client.login()
+            val intent = json(client.create(token))
+            val id = intent.getValue("id").jsonPrimitive.content
+            assertEquals(HttpStatusCode.Conflict, client.refund(token, id, 1000).status)
+            for (amount in listOf(0L, -1L, 1000001L)) assertEquals(
+                HttpStatusCode.BadRequest,
+                client.refund(token, id, amount).status,
+            )
+            client.authorise(token, id, proof(intent))
+            db.transaction { c ->
+                c.prepareStatement("update virtual_cards set status='BLOCKED' where id=?").use {
+                    it.setObject(1, card)
+                    it.executeUpdate()
+                }
+            }
+            assertEquals(HttpStatusCode.Created, client.refund(token, id, 2500).status)
+            assertEquals(10000, balance())
+        }
+
+    @Test
+    fun `audit pagination is bounded merchant scoped and ignores unfiltered details`() =
+        testApplication {
+            application { module(db, auth = AuthService(db, config)) }
+            makeOwner()
+            val token = client.login()
+            val intent = json(client.create(token))
+            client.authorise(token, intent.getValue("id").jsonPrimitive.content, proof(intent))
+            val first =
+                json(
+                    client.get("/api/v1/merchants/$merchant/audit-events?limit=1") {
+                        bearerAuth(token)
+                    }
+                )
+            val cursor = first.getValue("nextCursor").jsonPrimitive.content
+            val second =
+                json(
+                    client.get("/api/v1/merchants/$merchant/audit-events?limit=1&cursor=$cursor") {
+                        bearerAuth(token)
+                    }
+                )
+            assertNotEquals(
+                first.getValue("items").jsonArray.single(),
+                second.getValue("items").jsonArray.single(),
+            )
+            for (query in
+                listOf(
+                    "limit=101",
+                    "cursor=broken",
+                    "eventType=%27",
+                    "from=2025-01-01T00:00:00Z&to=2026-11-01T00:00:00Z",
+                )) assertEquals(
+                HttpStatusCode.BadRequest,
+                client
+                    .get("/api/v1/merchants/$merchant/audit-events?$query") { bearerAuth(token) }
+                    .status,
+            )
+            assertEquals(
+                HttpStatusCode.NotFound,
+                client
+                    .get("/api/v1/merchants/${UUID.randomUUID()}/dashboard") { bearerAuth(token) }
+                    .status,
+            )
+        }
+
+    @Test
+    fun `refund retries roll back transient transactions and stop after three attempts`() =
+        kotlinx.coroutines.runBlocking {
+            makeOwner()
+            val identity = com.tapflow.api.auth.Identity(operator, UUID.randomUUID(), "MOBILE")
+            val service = PaymentService(db)
+            val intent =
+                service
+                    .create(
+                        identity,
+                        merchant,
+                        CreateIntentRequest(terminal.toString(), 2500, "AUD"),
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                    )
+                    .body
+            val id = UUID.fromString(intent.getValue("id").jsonPrimitive.content)
+            service.authorise(
+                identity,
+                merchant,
+                id,
+                Json.decodeFromString<AuthoriseRequest>(proof(intent)),
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+            )
+            for (state in listOf("40001", "40P01")) {
+                var calls = 0
+                val retrying =
+                    RefundService(
+                        db,
+                        nextId = {
+                            if (++calls == 4)
+                                throw java.sql.SQLException("Injected transient failure", state)
+                            else UUID.randomUUID()
+                        },
+                    )
+                assertEquals(
+                    201,
+                    retrying
+                        .create(
+                            identity,
+                            merchant,
+                            id,
+                            RefundRequest(1000, "OTHER"),
+                            UUID.randomUUID(),
+                            UUID.randomUUID(),
+                        )
+                        .status,
+                )
+                assertEquals(8, calls)
+            }
+            assertEquals(9500, balance())
+            assertEquals(2, service.detail(identity, merchant, id, UUID.randomUUID()).refunds.size)
+            var calls = 0
+            val exhausted =
+                RefundService(
+                    db,
+                    nextId = {
+                        calls++
+                        throw java.sql.SQLException("Injected persistent failure", "40001")
+                    },
+                )
+            assertThrows(java.sql.SQLException::class.java) {
+                kotlinx.coroutines.runBlocking {
+                    exhausted.create(
+                        identity,
+                        merchant,
+                        id,
+                        RefundRequest(100, "OTHER"),
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                    )
+                }
+            }
+            assertEquals(3, calls)
+            assertEquals(9500, balance())
+        }
+
+    @Test
+    fun `membership in both merchants never allows a refund through the wrong merchant path`() =
+        testApplication {
+            application { module(db, auth = AuthService(db, config)) }
+            makeOwner()
+            val token = client.login()
+            val intent = json(client.create(token))
+            val id = intent.getValue("id").jsonPrimitive.content
+            client.authorise(token, id, proof(intent))
+            val other = UUID.randomUUID()
+            db.transaction { c ->
+                c.prepareStatement("insert into merchants(id,name,slug) values (?,'Other store',?)")
+                    .use {
+                        it.setObject(1, other)
+                        it.setString(2, other.toString())
+                        it.executeUpdate()
+                    }
+                c.prepareStatement(
+                        "insert into merchant_memberships(user_id,merchant_id,role) values (?,?,'OWNER')"
+                    )
+                    .use {
+                        it.setObject(1, operator)
+                        it.setObject(2, other)
+                        it.executeUpdate()
+                    }
+            }
+            assertEquals(
+                HttpStatusCode.NotFound,
+                client.refund(token, id, 1000, merchantId = other).status,
+            )
+            assertEquals(7500, balance())
+        }
+
+    @Test
+    fun `default dashboard boundaries round trip at PostgreSQL microsecond precision`() =
+        kotlinx.coroutines.runBlocking {
+            val clock =
+                java.time.Clock.fixed(
+                    Instant.parse("2026-11-09T12:00:00.123456789Z"),
+                    java.time.ZoneOffset.UTC,
+                )
+            val reports = com.tapflow.api.merchants.ReportsService(db, clock)
+            val identity = com.tapflow.api.auth.Identity(operator, UUID.randomUUID(), "MOBILE")
+            val first = reports.dashboard(identity, merchant, null, null)
+            assertEquals(Instant.parse("2026-11-09T12:00:00.123456Z"), Instant.parse(first.to))
+            val retried = reports.dashboard(identity, merchant, first.from, first.to)
+            assertEquals(first.from, retried.from)
+            assertEquals(first.to, retried.to)
         }
 }

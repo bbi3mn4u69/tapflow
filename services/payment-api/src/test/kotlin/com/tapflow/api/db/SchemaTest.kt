@@ -46,6 +46,12 @@ class SchemaTest {
             "idempotency_records", "refresh_sessions", "audit_events")), names.toString())
         assertTrue(flyway.validateWithResult().validationSuccessful)
         assertEquals(0, flyway.migrate().migrationsExecuted)
+        connection.createStatement().use { statement ->
+            statement.executeQuery("select indexdef from pg_indexes where schemaname='tapflow' and indexname='intents_by_authorisation'").use { rows ->
+                assertTrue(rows.next());assertTrue(rows.getString(1).contains("merchant_id, authorised_at DESC, id DESC"))
+            }
+        }
+
     }
 
     @Test

@@ -73,7 +73,7 @@ export interface paths {
         };
         /**
          * Read the v1 API contract
-         * @description Contract for the complete planned v1. Phase 1 system endpoints, phase 2 authentication, identity and merchant metadata, phase 3 customer cards/wallets and phase 4 terminals and phase 5 payments are implemented. DEMO / NO REAL MONEY.
+         * @description Contract for the complete planned v1. Phase 1 system endpoints, phase 2 authentication, identity and merchant metadata, phase 3 customer cards/wallets and phase 4 terminals, phase 5 payments and phase 6 refunds/reporting/audit are implemented. DEMO / NO REAL MONEY.
          */
         get: operations["getOpenApi"];
         put?: never;
@@ -377,7 +377,7 @@ export interface paths {
         };
         /**
          * Read server-derived merchant totals
-         * @description OWNER/OPERATOR. Group payments by authorisation time in [from,to), then subtract all refunds associated with those payments, even if refunded later. Maximum 366-day interval. DEMO / NO REAL MONEY.
+         * @description OWNER/OPERATOR. Group payments by authorisation time in [from,to), then subtract all refunds associated with those payments, even if refunded later. Daily buckets use UTC dates and include zero days; recent payments use the same authorisation window. One repeatable-read snapshot keeps totals consistent. Maximum 366-day interval; default last 30 days. DEMO / NO REAL MONEY.
          */
         get: operations["getDashboard"];
         put?: never;
@@ -617,7 +617,7 @@ export interface paths {
         };
         /**
          * OWNER: read sanitised merchant audit events
-         * @description OWNER: read sanitised merchant audit events. DEMO / NO REAL MONEY.
+         * @description OWNER: read sanitised merchant audit events, newest first by timestamp and ID. Bounded to 100 per page with a merchant-scoped cursor and a maximum 366-day UTC date range (default last 30 days). Details are deliberately empty; arbitrary stored JSON is never returned. DEMO / NO REAL MONEY.
          */
         get: operations["listAuditEvents"];
         put?: never;
@@ -656,7 +656,7 @@ export interface components {
             /** @constant */
             service: "tapflow-api";
             /** @constant */
-            phase: "payments";
+            phase: "merchant-operations";
             /** @constant */
             demo: true;
         };
