@@ -39,6 +39,7 @@ class AuthConfig(
             require((env["ACCESS_TOKEN_TTL_SECONDS"] ?: "900") == "900") { "Access token TTL is fixed at 900 seconds" }
             val registration = env["DEMO_CUSTOMER_REGISTRATION_ENABLED"] ?: "false"
             require(registration in setOf("true", "false")) { "Invalid registration flag" }
+            require(development || registration == "false") { "Public registration is disabled outside development/test" }
             return AuthConfig(required("JWT_SIGNING_SECRET"), required("JWT_ISSUER"), required("JWT_AUDIENCE"),
                 origins,
                 secureCookie = !(development && publicUrl.scheme == "http"),

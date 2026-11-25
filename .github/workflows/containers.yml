@@ -1,0 +1,63 @@
+name: Containers and recovery
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+permissions:
+  contents: read
+concurrency:
+  group: containers-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  deployment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: apps/web/pnpm-lock.yaml
+      - name: Install checksum-verified operational tools
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          curl -fsSL https://github.com/FiloSottile/age/releases/download/v1.3.2/age-v1.3.2-linux-amd64.tar.gz -o "$RUNNER_TEMP/age.tar.gz"
+          echo "cbe24006683f8eb669266162894b9a522a1af52f2665fbc63a4bb032ed26ac10  $RUNNER_TEMP/age.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/age.tar.gz" -C "$RUNNER_TEMP"
+          cp "$RUNNER_TEMP/age/age" "$RUNNER_TEMP/age/age-keygen" "$RUNNER_TEMP/bin/"
+          curl -fsSL https://github.com/aquasecurity/trivy/releases/download/v0.76.2/trivy_0.76.2_Linux-64bit.tar.gz -o "$RUNNER_TEMP/trivy.tar.gz"
+          echo "bc0fc726e017b8927a62b2d3531d7a84ee01769daf5c99ed866dced54089fdbf  $RUNNER_TEMP/trivy.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/trivy.tar.gz" -C "$RUNNER_TEMP/bin" trivy
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+      - name: Reject secrets without printing matched values
+        run: |
+          umask 077
+          echo 'd00e40c883b4f885689b5c94209c49aa9ce3a8080c296f908a6f78e9dfb351ac  packages/protocol-kotlin/src/test/resources/test-only-p256-private.pem' | sha256sum -c -
+          trivy fs --scanners secret --skip-files packages/protocol-kotlin/src/test/resources/test-only-p256-private.pem --format json --output "$RUNNER_TEMP/secrets.json" .
+          jq -e '[.Results[]?.Secrets[]?] | length == 0' "$RUNNER_TEMP/secrets.json"
+      - run: docker build -t tapflow-db:phase7 -f infra/postgres/Dockerfile .
+      - run: docker build -t tapflow-api:phase7 -f services/payment-api/Dockerfile .
+      - run: docker build -t tapflow-web:phase7 -f apps/web/Dockerfile .
+      - name: Record HIGH and CRITICAL image findings
+        run: |
+          mkdir -p image-reports
+          for component in db api web; do
+            trivy image --scanners vuln --severity HIGH,CRITICAL --format json --output "image-reports/$component.json" "tapflow-$component:phase7"
+          done
+      - run: pnpm --dir apps/web install --frozen-lockfile
+      - run: pnpm --dir apps/web exec playwright install --with-deps chromium
+      - run: python3 -m unittest discover -s infra/tests -v
+      - name: Verify HTTPS deployment, refunds, encrypted restore and restart
+        run: python3 infra/scripts/test-deployment.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tapflow-container-evidence
+          path: |
+            image-reports/
+            apps/web/test-results/

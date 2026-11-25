@@ -79,7 +79,7 @@ class SecurityTest {
         assertTrue(AuthConfig.fromEnvironment(env).secureCookie)
         for (bad in listOf(mapOf("JWT_SIGNING_SECRET" to "short"), mapOf("JWT_SIGNING_SECRET" to "REPLACE_WITH_32_PLUS_RANDOM_BYTES"),
             mapOf("APP_PUBLIC_URL" to "http://portal.example.test"), mapOf("ALLOWED_ORIGINS" to "*"),
-            mapOf("ALLOWED_ORIGINS" to "http://portal.example.test"), mapOf("ACCESS_TOKEN_TTL_SECONDS" to "3600"))) {
+            mapOf("ALLOWED_ORIGINS" to "http://portal.example.test"), mapOf("DEMO_CUSTOMER_REGISTRATION_ENABLED" to "true"), mapOf("ACCESS_TOKEN_TTL_SECONDS" to "3600"))) {
             assertThrows(IllegalArgumentException::class.java) { AuthConfig.fromEnvironment(env + bad) }
         }
         assertFalse(AuthConfig.fromEnvironment(env + mapOf("APP_ENV" to "development", "APP_PUBLIC_URL" to "http://localhost:5173", "ALLOWED_ORIGINS" to "http://localhost:5173")).secureCookie)

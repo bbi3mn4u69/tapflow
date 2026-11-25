@@ -2,11 +2,11 @@
 
 **DEMO / NO REAL MONEY.** TapFlow is an educational closed-loop NFC simulator, not a real bank-card payment processor or a certified payment product.
 
-Two Android apps exchange proprietary APDUs; a Kotlin/Ktor API will verify device-held signatures and maintain a PostgreSQL demo wallet ledger. A React merchant workspace will expose payments, terminals, refunds and audit events.
+Two Android apps exchange proprietary APDUs; a Kotlin/Ktor API verifies device-held signatures and maintains a PostgreSQL demo wallet ledger. A React merchant workspace exposes payments, terminals, refunds and audit events.
 
 ## Current milestone
 
-Phase 6 software: the merchant portal now displays live KPIs, daily activity, filtered/paginated transactions, demo receipts, refunds and owner audit history. Owner refunds atomically credit the original wallet; interrupted browser requests retain their idempotency key for recovery. The Android Card/POS payment flow remains available. **Physical NFC acceptance remains pending** by user choice. Production deployment, operational hardening and final demo assets remain phase 7 work. Runtime development uses Railway; all financial test fixtures use disposable PostgreSQL. See [progress](docs/progress.md) and the governing [specification](overall.md).
+Phase 6 software: the merchant portal now displays live KPIs, daily activity, filtered/paginated transactions, demo receipts, refunds and owner audit history. Owner refunds atomically credit the original wallet; interrupted browser requests retain their idempotency key for recovery. The Android Card/POS payment flow remains available. **Physical NFC acceptance remains pending** by user choice. Phase 7 adds non-root API/web images, HTTPS container staging, encrypted backup/restore and Railway deployment. See [operations](docs/operations.md) for deployment status and remaining operational limits. Runtime development uses Railway; all financial test fixtures use disposable PostgreSQL. See [progress](docs/progress.md) and the governing [specification](overall.md).
 
 ## Run locally
 
@@ -63,8 +63,8 @@ packages/android-auth/    Shared native sign-in, encrypted storage and session U
 packages/protocol-kotlin/ Pure Kotlin/JVM APDU codecs, session state and verification
 services/payment-api/    Kotlin/Ktor application and HTTP tests
 contracts/               OpenAPI source; web types are generated from it
-infra/compose/           Pinned PostgreSQL development service
-infra/scripts/           Demo seed and isolated emulator/browser verification
+infra/compose/           Development and hardened production topologies
+infra/scripts/           Seed, isolated acceptance and encrypted backup/restore
 .github/workflows/       JVM/web and Android CI
 docs/                    Setup, decisions, design, testing and progress
 ```
@@ -88,3 +88,6 @@ python3 infra/scripts/test-web.py
 
 Stop an API using `build/install` before fixture runs; restart it afterward. See
 [refund/reporting setup](docs/setup.md#merchant-reports-and-refunds--phase-6).
+
+Container deployment, Railway settings and recovery: [operations](docs/operations.md).
+Actual HTTPS fixture recording: [demo script](docs/demo-script.md).

@@ -1,0 +1,7 @@
+services:
+  db:
+    build: {context: ../.., dockerfile: infra/postgres/Dockerfile}
+  api:
+    build: {context: ../.., dockerfile: services/payment-api/Dockerfile}
+  web:
+    build: {context: ../.., dockerfile: apps/web/Dockerfile}

@@ -257,3 +257,27 @@ API/Vite ports, random-secret PostgreSQL container and synthetic accounts. It
 never loads `.env` or mutates Railway. Do not point the Playwright runner at the
 runtime database. Restart the normal API after fixture runs. The emulator runner
 uses the same disposable lifecycle and still requires exactly one emulator.
+
+## Container deployment — phase 7
+
+The opt-in development `stack` profile builds PostgreSQL with TLS, the API and
+static web; default development Compose still starts only the database. Stop the
+native API before binding port 8080. See [operations](operations.md) for commands,
+secret-file configuration, Railway service settings and the manual deployment
+workflow. The existing native `.env` and database volumes are preserved.
+
+To verify the hardened stack without touching runtime data:
+
+```sh
+docker build -t tapflow-db:phase7 -f infra/postgres/Dockerfile .
+docker build -t tapflow-api:phase7 -f services/payment-api/Dockerfile .
+docker build -t tapflow-web:phase7 -f apps/web/Dockerfile .
+python3 -m unittest discover -s infra/tests -v
+python3 infra/scripts/test-deployment.py
+```
+
+Install age 1.3.2 and the existing Playwright Chromium prerequisite first. The
+runner uses random loopback ports, a fixture-only CA, synthetic accounts and its
+own disposable bind storage. It verifies real payment/refund browser flows,
+non-root services, encrypted restore, wallet/ledger consistency and restart.
+It never reads `.env`, trusts its CA globally, or removes existing named volumes.

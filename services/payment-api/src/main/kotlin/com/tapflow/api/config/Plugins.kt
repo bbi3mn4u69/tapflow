@@ -15,6 +15,7 @@ import io.ktor.server.plugins.bodylimit.RequestBodyLimit
 import io.ktor.server.plugins.callid.CallId
 import io.ktor.server.plugins.callid.callId
 import io.ktor.server.plugins.callid.callIdMdc
+import io.ktor.server.plugins.calllogging.processingTimeMillis
 import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.statuspages.StatusPages
@@ -38,7 +39,7 @@ fun Application.configurePlugins(nextRequestId: () -> UUID) {
     }
     install(CallLogging) {
         callIdMdc("requestId")
-        format { call -> "http.request method=${call.request.httpMethod.value} status=${call.response.status()?.value ?: 0}" }
+        format { call -> "http.request method=${call.request.httpMethod.value} status=${call.response.status()?.value ?: 0} durationMs=${call.processingTimeMillis()}" }
     }
     install(RequestBodyLimit) { bodyLimit { 16_384L } }
     install(StatusPages) {

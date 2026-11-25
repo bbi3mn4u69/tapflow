@@ -1,11 +1,12 @@
 package com.tapflow.api.db
 
+import com.tapflow.api.config.SecretFiles
 import com.tapflow.api.config.AppConfig
 import de.mkammerer.argon2.Argon2Factory
 import java.util.UUID
 
 fun main() {
-    val env = System.getenv()
+    val env = SecretFiles.load(System.getenv())
     val config = AppConfig.fromEnvironment(env)
     require(config.environment in setOf("development", "test")) { "Demo seeding is restricted to development and test" }
     val passwords = listOf("SEED_OWNER_PASSWORD", "SEED_OPERATOR_PASSWORD", "SEED_CUSTOMER_PASSWORD").map { name ->

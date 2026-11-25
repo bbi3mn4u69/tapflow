@@ -104,3 +104,29 @@ The portal additionally stores unresolved refund key/amount/reason in scoped
 sessionStorage, with no tokens or proofs. A later access failure preserves an
 uncertain refund. Tab/storage loss requires reconciliation against server history
 before another request. See [ADR-012](adr/ADR-012-refunds-and-merchant-reporting.md).
+
+## Deployment hardening — phase 7
+
+Application images use UID 10001, pinned multi-stage bases and runtime-only
+artifacts. Hardened Compose drops capabilities, uses read-only root filesystems,
+no-new-privileges, bounded memory/process/log resources and private database/API
+networks. Only the Caddy edge publishes ports. PostgreSQL uses TLS internally;
+`sslmode=require` encrypts but does not establish a trusted server identity.
+`verify-full` needs a matching trusted certificate and hostname.
+
+Compose secrets use bounded single-line `_FILE` loading; ambiguous value/file
+pairs fail before startup. Railway injects protected variables/references rather
+than embedding them in images. Public staging/production signup and all public
+reset remain disabled. Same-origin web/API routing preserves secure refresh
+cookies. CSP excludes remote scripts, inline scripts and eval; inline styles are
+allowed for the existing UI's layout values. Static hashed assets cache immutably;
+HTML and API responses default to no-store. Application logs add elapsed
+milliseconds without logging query strings or request data.
+
+Backups are age-encrypted before publication. Restore refuses existing objects,
+authenticates ciphertext before SQL and rolls back SQL failures. See
+[operations](operations.md) for private key storage, offsite retention, the absence
+of an active scheduled job and separate-database recovery. CI secret scanning
+excludes only the exact hash-checked, public protocol test key. Image vulnerability
+reports are advisory; review them before widening access. Hosted alerting, physical
+NFC acceptance and a security certification are not claimed.

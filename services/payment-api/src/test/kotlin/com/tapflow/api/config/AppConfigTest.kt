@@ -58,4 +58,13 @@ class AppConfigTest {
         }
         assertThrows(IllegalArgumentException::class.java) { AppConfig.fromEnvironment(env + ("API_PORT" to "0")) }
     }
+    @Test fun `accepts Railway PORT while explicit API_PORT has precedence`() {
+        assertEquals(4321,AppConfig.fromEnvironment(env+("PORT" to "4321")).port)
+        assertEquals(8081,AppConfig.fromEnvironment(env+mapOf("PORT" to "4321","API_PORT" to "8081")).port)
+        for(raw in listOf("0","65536","invalid"))assertThrows(IllegalArgumentException::class.java){AppConfig.fromEnvironment(env+("PORT" to raw))}
+    }
+    @Test fun `rejects enabling a public reset surface`() {
+        assertThrows(IllegalArgumentException::class.java){AppConfig.fromEnvironment(env+("DEMO_RESET_ENABLED" to "true"))}
+    }
+
 }

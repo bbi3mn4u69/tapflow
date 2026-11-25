@@ -8,6 +8,7 @@ import com.tapflow.api.auth.configureRequestSecurity
 import com.tapflow.api.cards.CardService
 import com.tapflow.api.cards.cardRoutes
 import com.tapflow.api.common.DomainError
+import com.tapflow.api.config.SecretFiles
 import com.tapflow.api.config.AppConfig
 import com.tapflow.api.config.AuthConfig
 import com.tapflow.api.config.CardConfig
@@ -33,9 +34,10 @@ import io.ktor.server.routing.routing
 import java.util.UUID
 
 fun main() {
-    val config = AppConfig.fromEnvironment(System.getenv())
-    val authConfig = AuthConfig.fromEnvironment(System.getenv())
-    val cards = CardConfig.fromEnvironment(System.getenv())
+    val env = SecretFiles.load(System.getenv())
+    val config = AppConfig.fromEnvironment(env)
+    val authConfig = AuthConfig.fromEnvironment(env)
+    val cards = CardConfig.fromEnvironment(env)
     Database.open(config.database).use { database ->
         val auth = AuthService(database, authConfig)
         embeddedServer(Netty, host = config.host, port = config.port) {

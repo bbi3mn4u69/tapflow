@@ -1,0 +1,40 @@
+name: Deploy Railway
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: railway-production
+  cancel-in-progress: false
+jobs:
+  containers:
+    uses: ./.github/workflows/containers.yml
+  deploy:
+    needs: containers
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require successful application CI for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for workflow in ci.yml android.yml; do
+            gh run list --workflow "$workflow" --commit "$GITHUB_SHA" --json conclusion --jq 'any(.[]; .conclusion == "success")' | grep -qx true
+          done
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --global @railway/cli@5.71.0
+      - name: Upload the verified source to the configured services
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          test -n "$RAILWAY_TOKEN"
+          railway up --project 0ca7489c-2e7d-47c8-a594-a6628c1e25b0 --environment production --service 3b5faafa-11d0-4e1c-91db-e3324767e607 --ci
+          railway up --project 0ca7489c-2e7d-47c8-a594-a6628c1e25b0 --environment production --service c02a5f48-58b8-4c76-a8a8-bd1ba2080398 --ci
+      - name: Check public routing
+        run: |
+          curl --fail --retry 5 --retry-delay 5 https://tapflow-web-production.up.railway.app/healthz
+          curl --fail --retry 5 --retry-delay 5 https://tapflow-web-production.up.railway.app/api/v1/status

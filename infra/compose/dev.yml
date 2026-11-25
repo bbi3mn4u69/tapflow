@@ -1,7 +1,8 @@
 name: tapflow-dev
 services:
   db:
-    image: postgres:17.11@sha256:748a18a54d3842d43bc156f0840d78029b8d349e0feca98c12b9c4ce3404a6b3
+    image: tapflow-db:local
+    build: {context: ../.., dockerfile: infra/postgres/Dockerfile}
     environment:
       POSTGRES_DB: tapflow
       POSTGRES_USER: tapflow
@@ -16,5 +17,34 @@ services:
       timeout: 3s
       retries: 20
       start_period: 5s
+  api:
+    profiles: [stack]
+    image: tapflow-api:local
+    build: {context: ../.., dockerfile: services/payment-api/Dockerfile}
+    environment:
+      APP_ENV: development
+      API_HOST: 0.0.0.0
+      API_PORT: '8080'
+      DEMO_MODE: 'true'
+      DATABASE_URL: jdbc:postgresql://db:5432/tapflow?sslmode=require
+      DATABASE_USER: tapflow
+      DATABASE_PASSWORD: ${LOCAL_DATABASE_PASSWORD}
+      JWT_SIGNING_SECRET: ${JWT_SIGNING_SECRET:-}
+      JWT_ISSUER: tapflow-local
+      JWT_AUDIENCE: tapflow-clients
+      APP_PUBLIC_URL: http://localhost:8088
+      ALLOWED_ORIGINS: http://localhost:8088
+      DEMO_RESET_ENABLED: 'false'
+      DEMO_CUSTOMER_REGISTRATION_ENABLED: 'false'
+    ports: ['127.0.0.1:8080:8080']
+    depends_on: {db: {condition: service_healthy}}
+    stop_grace_period: 15s
+  web:
+    profiles: [stack]
+    image: tapflow-web:local
+    build: {context: ../.., dockerfile: apps/web/Dockerfile}
+    environment: {PORT: '8080', API_UPSTREAM: 'api:8080'}
+    ports: ['127.0.0.1:8088:8080']
+    depends_on: {api: {condition: service_healthy}}
 volumes:
   tapflow_dev_pgdata:

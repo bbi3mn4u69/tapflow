@@ -40,9 +40,11 @@ data class AppConfig(val host: String, val port: Int, val environment: String, v
             val environment = env["APP_ENV"] ?: "development"
             require(environment in setOf("development", "test", "staging", "production")) { "Invalid APP_ENV" }
             require(env["DEMO_MODE"] == "true") { "TapFlow requires DEMO_MODE=true" }
+            require((env["DEMO_RESET_ENABLED"] ?: "false") == "false") { "Public demo reset is not supported" }
+            val portKey = if (env.containsKey("API_PORT")) "API_PORT" else "PORT"
             return AppConfig(
                 host = env["API_HOST"]?.takeIf { it.isNotBlank() } ?: "127.0.0.1",
-                port = bounded("API_PORT", 8080, 1..65535),
+                port = bounded(portKey, 8080, 1..65535),
                 environment = environment,
                 database = DatabaseConfig(url, required("DATABASE_USER"), required("DATABASE_PASSWORD"),
                     bounded("DATABASE_POOL_SIZE", 5, 1..20)),

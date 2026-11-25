@@ -1,0 +1,104 @@
+name: tapflow
+x-runtime: &runtime
+  restart: unless-stopped
+  read_only: true
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+  logging:
+    driver: json-file
+    options: {max-size: '10m', max-file: '3'}
+services:
+  db:
+    <<: *runtime
+    image: ${DB_IMAGE:?Set the verified TapFlow PostgreSQL image tag}
+    environment:
+      POSTGRES_DB: tapflow
+      POSTGRES_USER: tapflow
+      POSTGRES_PASSWORD_FILE: /run/secrets/database_password
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    secrets: [database_password]
+    volumes: [tapflow_pgdata:/var/lib/postgresql/data]
+    tmpfs: [/tmp, "/var/run/postgresql:uid=999,gid=999,mode=0775"]
+    networks: [private]
+    mem_limit: 512m
+    cpus: 1
+    pids_limit: 200
+    shm_size: 128m
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U tapflow -d tapflow']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+  api:
+    <<: *runtime
+    image: ${API_IMAGE:?Set the verified API image tag}
+    environment:
+      APP_ENV: production
+      API_HOST: 0.0.0.0
+      API_PORT: 8080
+      DEMO_MODE: 'true'
+      DATABASE_URL: jdbc:postgresql://db:5432/tapflow?sslmode=require
+      DATABASE_USER: tapflow
+      DATABASE_PASSWORD_FILE: /run/secrets/database_password
+      DATABASE_POOL_SIZE: '5'
+      JWT_SIGNING_SECRET_FILE: /run/secrets/jwt_signing_secret
+      JWT_ISSUER: tapflow-production
+      JWT_AUDIENCE: tapflow-clients
+      APP_PUBLIC_URL: https://${PUBLIC_HOSTNAME:?Set PUBLIC_HOSTNAME}
+      API_PUBLIC_URL: https://${PUBLIC_HOSTNAME}
+      ALLOWED_ORIGINS: https://${PUBLIC_HOSTNAME}
+      DEMO_CARD_ENROLLMENT_ENABLED: 'true'
+      DEMO_CUSTOMER_REGISTRATION_ENABLED: 'false'
+      DEMO_RESET_ENABLED: 'false'
+    secrets: [database_password, jwt_signing_secret]
+    depends_on: {db: {condition: service_healthy}}
+    tmpfs: [/tmp]
+    networks: [private, edge]
+    mem_limit: 1g
+    cpus: 2
+    pids_limit: 300
+    stop_grace_period: 15s
+  web:
+    <<: *runtime
+    image: ${WEB_IMAGE:?Set the verified web image tag}
+    environment: {PORT: '8080', API_UPSTREAM: 'api:8080'}
+    depends_on: {api: {condition: service_healthy}}
+    tmpfs: [/tmp, "/data:uid=10001,gid=10001,mode=0700", "/config:uid=10001,gid=10001,mode=0700"]
+    networks: [edge]
+    mem_limit: 128m
+    cpus: 0.5
+    pids_limit: 100
+  caddy:
+    <<: *runtime
+    image: ${WEB_IMAGE}
+    command: [caddy, run, --config, /etc/caddy/edge.Caddyfile, --adapter, caddyfile]
+    environment:
+      PUBLIC_HOSTNAME: ${PUBLIC_HOSTNAME}
+    cap_add: [NET_BIND_SERVICE]
+    ports: ['80:80', '443:443', '443:443/udp']
+    volumes:
+      - ../caddy/Caddyfile:/etc/caddy/edge.Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    tmpfs: [/tmp]
+    networks: [edge]
+    depends_on: {web: {condition: service_healthy}}
+    mem_limit: 128m
+    cpus: 0.5
+    pids_limit: 100
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, 'http://127.0.0.1:8081/healthz']
+      interval: 10s
+      timeout: 3s
+      retries: 10
+secrets:
+  database_password: {file: '${DATABASE_PASSWORD_FILE:?Set DATABASE_PASSWORD_FILE}'}
+  jwt_signing_secret: {file: '${JWT_SIGNING_SECRET_FILE:?Set JWT_SIGNING_SECRET_FILE}'}
+networks:
+  private: {internal: true}
+  edge: {}
+volumes:
+  tapflow_pgdata: {}
+  caddy_data: {}
+  caddy_config: {}
